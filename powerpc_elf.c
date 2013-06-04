@@ -244,7 +244,7 @@ int powerpc_boot_file(const char *path)
 	set32(HW_RESETS, 0x10);
 	
 	do
-	{	dc_invalidaterange((void*)0x1330120,32);
+	{	dc_invalidaterange((void*)0x1330100,64);
 		ahb_flush_from(AHB_1);
 	}while(oldValue == read32(0x1330120));
 	
@@ -253,7 +253,7 @@ int powerpc_boot_file(const char *path)
 	dc_flushrange((void*)0x1330100,32);
 
 	sensorbarOn();
-	oldValue == read32(0x1330100);
+	oldValue = read32(0x1330100);
 
 	// wait for decryption / validation to finish and PPC to flag that we have control.
 	do
