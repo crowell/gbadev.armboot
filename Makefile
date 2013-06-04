@@ -17,9 +17,9 @@ LIBS = -lgcc
 ELFLOADER = elfloader/elfloader.bin
 MAKEBIN = $(CURDIR)/makebin.py
 
-TARGET = armboot-sym.elf
-TARGET_STRIPPED = armboot.elf
-TARGET_BIN = armboot.bin
+TARGET = target/armboot-sym.elf
+TARGET_STRIPPED = target/armboot.elf
+TARGET_BIN = target/armboot.bin
 OBJS = start.o main.o ipc.o vsprintf.o string.o gecko.o memory.o memory_asm.o \
 	utils_asm.o utils.o ff.o diskio.o sdhc.o powerpc_elf.o powerpc.o panic.o \
 	irq.o irq_asm.o exception.o exception_asm.o seeprom.o crypto.o nand.o \
