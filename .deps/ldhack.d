@@ -1,1 +1,0 @@
-ldhack.o: ldhack.c
