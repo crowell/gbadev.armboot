@@ -35,6 +35,21 @@ extern u8 __mem2_area_start[];
 
 #define PHDR_MAX 10
 
+typedef struct dol_t dol_t;
+struct dol_t
+{
+        u32 offsetText[7];
+        u32 offsetData[11];
+        u32 addressText[7];
+        u32 addressData[11];
+        u32 sizeText[7];
+        u32 sizeData[11];
+        u32 addressBSS;
+        u32 sizeBSS;
+        u32 entrypt;
+        u8 pad[0x1C];
+};
+
 static int _check_physaddr(u32 addr) {
 	if ((addr >= PPC_MEM2_START) && (addr <= PPC_MEM2_END))
 		return 2;
@@ -62,17 +77,11 @@ static int _check_physrange(u32 addr, u32 len) {
 
 static Elf32_Ehdr elfhdr;
 static Elf32_Phdr phdrs[PHDR_MAX];
-//obcd
-//parentheses to get rid of warnings
+
 u32 virtualToPhysical(u32 virtualAddress)
-{	if(virtualAddress & 0x80000000)
-		return (virtualAddress & ~0x80000000);
-	if(virtualAddress & 0xC0000000)
-		return (virtualAddress & ~0xC0000000);
-	if(virtualAddress & 0x90000000)
-		return ((virtualAddress & ~0x90000000) | 0x10000000);
-	if(virtualAddress & 0xD0000000)
-		return ((virtualAddress & ~0xD0000000) | 0x10000000);
+{
+	if ((virtualAddress & 0xC0000000) == 0xC0000000) return virtualAddress & ~0xC0000000;
+	if ((virtualAddress & 0x80000000) == 0x80000000) return virtualAddress & ~0x80000000;
 	return virtualAddress;
 }
 
@@ -92,102 +101,59 @@ u32 makeAbsoluteBranch(u32 destAddr, bool linked)
     return ret;
 }
 
-inline int powerpc_load_dol(const char *path, u32 *endAddress)
-{	int c;
-	u32 read, BSSAddress, BSSSize, entryPoint, fileCounter = 0;
+int powerpc_load_dol(const char *path, u32 *endAddress)
+{
+	int c;
+	u32 read;
 	FIL fd;
 	FRESULT fres;
-	u32 textFileOffsets[7],
-	dataFileOffsets[11],
-	textLoadingAddresses[7],
-	dataLoadingAddresses[11],
-	textSizes[7],
-	dataSizes[11];
+	dol_t dol_hdr;
 
 	fres = f_open(&fd, path, FA_READ);
 	if (fres != FR_OK)
 		return -fres;
 
-	fres = f_read(&fd, (void *)&textFileOffsets, 7*4, &read);
+	fres = f_read(&fd, &dol_hdr, sizeof(dol_t), &read);
 	if (fres != FR_OK)
 		return -fres;
-	fileCounter+=7*4;
 
-	fres = f_read(&fd, (void *)&dataFileOffsets, 11*4, &read);
-	if (fres != FR_OK)
-		return -fres;
-	fileCounter+=11*4;
+	u32 end = 0;
+	int ii;
 
-	fres = f_read(&fd, (void *)&textLoadingAddresses, 7*4, &read);
-	if (fres != FR_OK)
-		return -fres;
-	fileCounter+=7*4;
-	for(c=0;c<7;c++)
-		textLoadingAddresses[c] = virtualToPhysical(textLoadingAddresses[c]);
+	/* TEXT SECTIONS */
+	for (ii = 0; ii < 7; ii++)
+	{
+		if (!dol_hdr.sizeText[ii])
+			continue;
+		fres = f_lseek(&fd, dol_hdr.offsetText[ii]);
+		if (fres != FR_OK)
+			return -fres;
+		u32 phys = virtualToPhysical(dol_hdr.addressText[ii]);
+		fres = f_read(&fd, (void*)phys, dol_hdr.sizeText[ii], &read);
+		if (fres != FR_OK)
+			return -fres;
+		if (phys + dol_hdr.sizeText[ii] > end)
+			end = phys + dol_hdr.sizeText[ii];
+	}
 
-	fres = f_read(&fd, (void *)&dataLoadingAddresses, 11*4, &read);
-	if (fres != FR_OK)
-		return -fres;
-	fileCounter+=11*4;
-	for(c=0;c<7;c++)
-		dataLoadingAddresses[c] = virtualToPhysical(dataLoadingAddresses[c]);
+	/* DATA SECTIONS */
+	for (ii = 0; ii < 11; ii++)
+	{
+		if (!dol_hdr.sizeData[ii])
+			continue;
+		fres = f_lseek(&fd, dol_hdr.offsetData[ii]);
+                if (fres != FR_OK)
+                        return -fres;
+		u32 phys = virtualToPhysical(dol_hdr.addressData[ii]);
+		fres = f_read(&fd, (void*)phys, dol_hdr.sizeData[ii], &read);
+                if (fres != FR_OK)
+                        return -fres;
+		if (phys + dol_hdr.sizeData[ii] > end)
+			end = phys + dol_hdr.sizeData[ii];
+	}
+	if (endAddress)
+		*endAddress = end -1;
 
-	fres = f_read(&fd, (void *)&textSizes, 7*4, &read);
-	if (fres != FR_OK)
-		return -fres;
-	fileCounter+=7*4;
-
-	fres = f_read(&fd, (void *)&dataSizes, 11*4, &read);
-	if (fres != FR_OK)
-		return -fres;
-	fileCounter+=11*4;
-
-	fres = f_read(&fd, (void *)&BSSAddress, 4, &read);
-	if (fres != FR_OK)
-		return -fres;
-	fileCounter+=4;
-	fres = f_read(&fd, (void *)&BSSSize, 4, &read);
-	if (fres != FR_OK)
-		return -fres;
-	fileCounter+=4;
-	fres = f_read(&fd, (void *)&entryPoint, 4, &read);
-	if (fres != FR_OK)
-		return -fres;
-	fileCounter+=4;
-	
-	// I know for this case there's only 1 text and 1 data area so I'm cheating here.
-	
-	fres = f_lseek(&fd, textFileOffsets[0]);
-	if (fres != FR_OK)
-		return -fres;
-	fileCounter = textFileOffsets[0];
-	
-	fres = f_read(&fd, (void *)textLoadingAddresses[0], textSizes[0], &read);
-	if (fres != FR_OK)
-		return -fres;
-	fileCounter+=textSizes[0];
-	
-	// 
-	
-	fres = f_lseek(&fd, dataFileOffsets[0]);
-	if (fres != FR_OK)
-		return -fres;
-	fileCounter = dataFileOffsets[0];
-	
-	fres = f_read(&fd, (void *)dataLoadingAddresses[0], dataSizes[0], &read);
-	if (fres != FR_OK)
-		return -fres;
-	fileCounter+=dataSizes[0];
-	
-	/////////////////////////////////
-
-	//dc_flushall();
-	//f_close(&fd);
-	gecko_printf("DOL load done");
-	
-	if(endAddress)
-		*endAddress = dataLoadingAddresses[0] + dataSizes[0] - 1;
-	
 	return 0;
 }
 
