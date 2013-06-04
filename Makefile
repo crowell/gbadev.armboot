@@ -14,7 +14,7 @@ CFLAGS += -DCAN_HAZ_IRQ -DCAN_HAZ_IPC
 LDSCRIPT = mini.ld
 LIBS = -lgcc
 
-ELFLOADER = elfloader/elfloader.bin
+ELFLOADER = target/elfloader.bin
 MAKEBIN = $(CURDIR)/makebin.py
 
 TARGET = target/armboot-sym.elf
