@@ -4,8 +4,8 @@ CFLAGS += -fpic
 LDSCRIPT = stub.ld
 LIBS = -lgcc
 
-TARGET = elfloader.elf
-TARGET_BIN = elfloader.bin
+TARGET = ../target/elfloader.elf
+TARGET_BIN = ../target/elfloader.bin
 OBJS = start.o stub.o string.o utils.o
 
 include ../common.mk

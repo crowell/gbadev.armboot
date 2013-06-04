@@ -29,7 +29,7 @@ include common.mk
 
 all: $(TARGET_BIN)
 
-main.o: main.c git_version.h
+main.o: main.c
 
 $(TARGET_STRIPPED): $(TARGET)
 	@echo  "STRIP	$@"
@@ -42,16 +42,12 @@ $(TARGET_BIN): $(TARGET_STRIPPED) $(ELFLOADER)
 upload: $(TARGET_BIN)
 	@$(WIIDEV)/bin/bootmii -a $<
 
-git_version.h: describesimple.sh
-	@echo "  GITVER    $@"
-	@echo 'const char git_version[] = "'`./describesimple.sh`'";' > git_version.h
-
 clean: myclean
 
 $(ELFLOADER):
 	@$(MAKE) -C elfloader
 
 myclean:
-	-rm -f $(TARGET) $(TARGET_STRIPPED) $(TARGET_BIN) git_version.h
+	-rm -f $(TARGET) $(TARGET_STRIPPED) $(TARGET_BIN)
 	@$(MAKE) -C elfloader clean
 

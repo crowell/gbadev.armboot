@@ -28,7 +28,6 @@ Copyright (C) 2009		John Kelley <wiidev@kelley.ca>
 #include "crypto.h"
 #include "nand.h"
 #include "boot2.h"
-#include "git_version.h"
 
 #define PPC_BOOT_FILE "/bootmii/ppcboot.elf"
 
@@ -42,7 +41,7 @@ u32 _main(void *base)
 	(void)base;
 
 	gecko_init();
-	gecko_printf("mini %s loading\n", git_version);
+	gecko_printf("mini wii-u test loading\n");
 
 	gecko_printf("Initializing exceptions...\n");
 	exception_initialize();
