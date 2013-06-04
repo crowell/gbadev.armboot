@@ -203,7 +203,7 @@ int powerpc_boot_file(const char *path)
 	sensorbarOff();
 	udelay(300000);
 	
-	u32 oldValue = read32(0x1330100);
+	u32 oldValue = read32(0x1330120);
 	sensorbarOn();
 	udelay(300000);
 	//oldValue2 = read32(decryptionEndAddress);

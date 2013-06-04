@@ -1,0 +1,812 @@
+Archive member included because of file (symbol)
+
+/Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_udivsi3.o)
+                              vsprintf.o (__aeabi_uidiv)
+/Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_divsi3.o)
+                              vsprintf.o (__aeabi_idiv)
+/Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_dvmd_tls.o)
+                              /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_udivsi3.o) (__aeabi_idiv0)
+
+Allocating common symbols
+Common symbol       size              file
+
+__aeabi_unwind_cpp_pr0
+                    0x0               ldhack.o
+otp                 0x80              crypto.o
+seeprom             0x100             crypto.o
+sc_host             0x2c              sdhc.o
+fatfs               0x224             main.o
+
+Discarded input sections
+
+ .text          0x00000000        0x0 start.o
+ .data          0x00000000        0x0 start.o
+ .bss           0x00000000        0x0 start.o
+ .text          0x00000000        0x0 main.o
+ .data          0x00000000        0x0 main.o
+ .bss           0x00000000        0x0 main.o
+ .text          0x00000000        0x0 ipc.o
+ .data          0x00000000        0x0 ipc.o
+ .text.ipc_flush
+                0x00000000       0x20 ipc.o
+ .text          0x00000000        0x0 vsprintf.o
+ .data          0x00000000        0x0 vsprintf.o
+ .bss           0x00000000        0x0 vsprintf.o
+ .text          0x00000000        0x0 string.o
+ .data          0x00000000        0x0 string.o
+ .bss           0x00000000        0x0 string.o
+ .text.strlen   0x00000000       0x20 string.o
+ .text.strcmp   0x00000000       0x30 string.o
+ .text.strncmp  0x00000000       0x50 string.o
+ .text.strlcat  0x00000000       0x34 string.o
+ .text.strchr   0x00000000       0x30 string.o
+ .text.strspn   0x00000000       0x48 string.o
+ .text.strcspn  0x00000000       0x3c string.o
+ .text          0x00000000        0x0 gecko.o
+ .data          0x00000000        0x0 gecko.o
+ .text.gecko_enable_console
+                0x00000000       0x50 gecko.o
+ .text          0x00000000        0x0 memory.o
+ .data          0x00000000        0x0 memory.o
+ .bss           0x00000000        0x0 memory.o
+ .text.ic_invalidateall
+                0x00000000       0x24 memory.o
+ .text.mem_setswap
+                0x00000000       0x38 memory.o
+ .data          0x00000000        0x0 memory_asm.o
+ .bss           0x00000000        0x0 memory_asm.o
+ .data          0x00000000        0x0 utils_asm.o
+ .bss           0x00000000        0x0 utils_asm.o
+ .text          0x00000000        0x0 utils.o
+ .data          0x00000000        0x0 utils.o
+ .bss           0x00000000        0x0 utils.o
+ .text.hexdump  0x00000000       0xe0 utils.o
+ .text.sprintf  0x00000000       0x24 utils.o
+ .text.panic    0x00000000       0x54 utils.o
+ .text.flashSensor
+                0x00000000       0x48 utils.o
+ .rodata.str1.1
+                0x00000000       0x18 utils.o
+ .text          0x00000000        0x0 ff.o
+ .data          0x00000000        0x0 ff.o
+ .text.f_close  0x00000000       0x20 ff.o
+ .text          0x00000000        0x0 diskio.o
+ .data          0x00000000        0x0 diskio.o
+ .bss           0x00000000        0x0 diskio.o
+ .text          0x00000000        0x0 sdhc.o
+ .data          0x00000000        0x0 sdhc.o
+ .bss           0x00000000        0x0 sdhc.o
+ .text.sdhc_card_intr_mask
+                0x00000000       0xa8 sdhc.o
+ .text.sdhc_card_intr_ack
+                0x00000000       0x30 sdhc.o
+ .text          0x00000000        0x0 powerpc_elf.o
+ .data          0x00000000        0x0 powerpc_elf.o
+ .text.makeRelativeBranch
+                0x00000000       0x18 powerpc_elf.o
+ .text.makeAbsoluteBranch
+                0x00000000       0x14 powerpc_elf.o
+ .text          0x00000000        0x0 powerpc.o
+ .data          0x00000000        0x0 powerpc.o
+ .bss           0x00000000        0x0 powerpc.o
+ .text          0x00000000        0x0 panic.o
+ .data          0x00000000        0x0 panic.o
+ .bss           0x00000000        0x0 panic.o
+ .text          0x00000000        0x0 irq.o
+ .data          0x00000000        0x0 irq.o
+ .data          0x00000000        0x0 irq_asm.o
+ .bss           0x00000000        0x0 irq_asm.o
+ .text          0x00000000        0x0 exception.o
+ .bss           0x00000000        0x0 exception.o
+ .data          0x00000000        0x0 exception_asm.o
+ .bss           0x00000000        0x0 exception_asm.o
+ .text          0x00000000        0x0 seeprom.o
+ .data          0x00000000        0x0 seeprom.o
+ .bss           0x00000000        0x0 seeprom.o
+ .text          0x00000000        0x0 crypto.o
+ .data          0x00000000        0x0 crypto.o
+ .text.aes_irq  0x00000000       0x14 crypto.o
+ .text.aes_empty_iv
+                0x00000000       0x20 crypto.o
+ .text          0x00000000        0x0 nand.o
+ .text.nand_send_command
+                0x00000000       0x3c nand.o
+ .text.nand_wait
+                0x00000000       0x38 nand.o
+ .text          0x00000000        0x0 boot2.o
+ .data          0x00000000       0x18 boot2.o
+ .bss           0x00000000       0x20 boot2.o
+ .text.read_to  0x00000000       0xc8 boot2.o
+ .text.boot2_load
+                0x00000000      0x49c boot2.o
+ .text.boot2_init
+                0x00000000       0x68 boot2.o
+ .text.boot2_run
+                0x00000000      0x168 boot2.o
+ .text.boot2_ipc
+                0x00000000       0xa4 boot2.o
+ .rodata.str1.1
+                0x00000000      0x3c3 boot2.o
+ .bss.mem2      0x00000000    0x80e00 boot2.o
+ .comment       0x00000000       0x23 boot2.o
+ .ARM.attributes
+                0x00000000       0x34 boot2.o
+ .text          0x00000000        0x0 ldhack.o
+ .data          0x00000000        0x0 ldhack.o
+ .bss           0x00000000        0x0 ldhack.o
+ .comment       0x00000000       0x23 ldhack.o
+ .ARM.attributes
+                0x00000000       0x34 ldhack.o
+ COMMON         0x00000000        0x0 ldhack.o
+ .text          0x00000000        0x0 sdmmc.o
+ .data          0x00000000        0x0 sdmmc.o
+ .bss           0x00000000        0x0 sdmmc.o
+ .text.sdmmc_abort
+                0x00000000       0x50 sdmmc.o
+ .data          0x00000000        0x0 /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_udivsi3.o)
+ .bss           0x00000000        0x0 /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_udivsi3.o)
+ .data          0x00000000        0x0 /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_divsi3.o)
+ .bss           0x00000000        0x0 /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_divsi3.o)
+ .data          0x00000000        0x0 /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_dvmd_tls.o)
+ .bss           0x00000000        0x0 /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_dvmd_tls.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+sram             0xffff0000         0x00010000
+sram2            0xfffe0000         0x00004000
+pagetable        0xfffe4000         0x00004000
+mem2             0x13f00000         0x00100000
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+                0x00000800                __stack_size = 0x800
+                0x00000100                __irqstack_size = 0x100
+                0x00000100                __excstack_size = 0x100
+                0x13f00000                __mem2_area_start = ORIGIN (mem2)
+                0x00100000                __mem2_area_size = 0x100000
+                0x14000000                __mem2_area_end = (ORIGIN (mem2) + 0x100000)
+                0xfffe4000                __page_table = ORIGIN (pagetable)
+
+.rodata.mem2    0x13f00000       0x20
+ *(.rodata.mem2)
+ .rodata.mem2   0x13f00000       0x20 ipc.o
+                0x13f00000                __ipc_info
+                0x13f00020                . = ALIGN (0x4)
+
+.data.mem2      0x13f00020        0x0
+ *(.data.mem2)
+                0x13f00020                . = ALIGN (0x4)
+
+.bss.mem2       0x13f00080     0x12a4
+                0x13f00080                __bss2_start = .
+ *(.bss.mem2)
+ .bss.mem2      0x13f00080      0x800 ipc.o
+ .bss.mem2      0x13f00880      0x200 diskio.o
+ .bss.mem2      0x13f00a80      0x880 nand.o
+ .bss.mem2      0x13f01300       0x24 sdmmc.o
+                0x13f01324                . = ALIGN (0x4)
+                0x13f01324                __bss2_end = .
+
+.ipcinfo        0x13fffffc        0x4
+                0x13fffffc        0x4 LONG 0x13f00000 __ipc_info
+
+.init           0xffff0000      0x100
+ *(.init)
+ .init          0xffff0000      0x100 start.o
+                0xffff0000                _start
+                0xffff00e4                debug_output
+                0xffff0100                . = ALIGN (0x4)
+
+.text           0xffff0100     0x6734
+ *(.text*)
+ .text._main    0xffff0100      0x22c main.o
+                0xffff0100                _main
+ .text.ipc_post
+                0xffff032c      0x12c ipc.o
+                0xffff032c                ipc_post
+ .text.ipc_enqueue_slow
+                0xffff0458       0xe0 ipc.o
+                0xffff0458                ipc_enqueue_slow
+ .text.ipc_irq  0xffff0538      0x3bc ipc.o
+                0xffff0538                ipc_irq
+ .text.ipc_initialize
+                0xffff08f4       0x78 ipc.o
+                0xffff08f4                ipc_initialize
+ .text.ipc_shutdown
+                0xffff096c       0x20 ipc.o
+                0xffff096c                ipc_shutdown
+ .text.ipc_process_slow
+                0xffff098c      0x18c ipc.o
+                0xffff098c                ipc_process_slow
+ .text.fmtstr   0xffff0b18      0x124 vsprintf.o
+ .text.fmtint   0xffff0c3c      0x378 vsprintf.o
+ .text.vsnprintf
+                0xffff0fb4      0x5bc vsprintf.o
+                0xffff0fb4                vsnprintf
+ .text.vsprintf
+                0xffff1570       0x14 vsprintf.o
+                0xffff1570                vsprintf
+ .text.strnlen  0xffff1584       0x28 string.o
+                0xffff1584                strnlen
+ .text.memset   0xffff15ac       0x1c string.o
+                0xffff15ac                memset
+ .text.memcpy   0xffff15c8       0x20 string.o
+                0xffff15c8                memcpy
+ .text.memcmp   0xffff15e8       0x38 string.o
+                0xffff15e8                memcmp
+ .text.strlcpy  0xffff1620       0x50 string.o
+                0xffff1620                strlcpy
+ .text._gecko_command
+                0xffff1670       0x48 gecko.o
+ .text._gecko_getid
+                0xffff16b8       0x68 gecko.o
+ .text._gecko_recvbyte
+                0xffff1720       0x30 gecko.o
+ .text._gecko_checkrecv
+                0xffff1750       0x18 gecko.o
+ .text.gecko_init
+                0xffff1768       0xa4 gecko.o
+                0xffff1768                gecko_init
+ .text.gecko_enable
+                0xffff180c       0x10 gecko.o
+                0xffff180c                gecko_enable
+ .text.gecko_printf
+                0xffff181c       0x84 gecko.o
+                0xffff181c                gecko_printf
+ .text.gecko_process
+                0xffff18a0      0x258 gecko.o
+                0xffff18a0                gecko_process
+ .text._mc_read32
+                0xffff1af8       0x68 memory.o
+                0xffff1af8                _mc_read32
+ .text._ahb_flush_to
+                0xffff1b60      0x314 memory.o
+                0xffff1b60                _ahb_flush_to
+ .text.ahb_flush_to
+                0xffff1e74       0x34 memory.o
+                0xffff1e74                ahb_flush_to
+ .text.ahb_flush_from
+                0xffff1ea8       0xe0 memory.o
+                0xffff1ea8                ahb_flush_from
+ .text.dc_flushrange
+                0xffff1f88       0x64 memory.o
+                0xffff1f88                dc_flushrange
+ .text.dc_invalidaterange
+                0xffff1fec       0x50 memory.o
+                0xffff1fec                dc_invalidaterange
+ .text.dc_flushall
+                0xffff203c       0x28 memory.o
+                0xffff203c                dc_flushall
+ .text.mem_protect
+                0xffff2064       0x3c memory.o
+                0xffff2064                mem_protect
+ .text.dma_addr
+                0xffff20a0       0x48 memory.o
+                0xffff20a0                dma_addr
+ .text.map_section
+                0xffff20e8       0x38 memory.o
+                0xffff20e8                map_section
+ .text.mem_initialize
+                0xffff2120      0x130 memory.o
+                0xffff2120                mem_initialize
+ .text.mem_shutdown
+                0xffff2250       0x3c memory.o
+                0xffff2250                mem_shutdown
+ .text          0xffff228c       0x64 memory_asm.o
+                0xffff228c                _dc_inval_entries
+                0xffff22a0                _dc_flush_entries
+                0xffff22b4                _dc_flush
+                0xffff22c0                _dc_inval
+                0xffff22cc                _ic_inval
+                0xffff22d8                _drain_write_buffer
+                0xffff22e4                _tlb_inval
+ .text          0xffff22f0       0x9c utils_asm.o
+                0xffff22f0                memcpy32
+                0xffff230c                memset32
+                0xffff2324                memcpy16
+                0xffff2340                memset16
+                0xffff2358                memcpy8
+                0xffff2374                memset8
+ .text.udelay   0xffff238c       0x58 utils.o
+                0xffff238c                udelay
+ .text.sensorPrep
+                0xffff23e4       0x3c utils.o
+                0xffff23e4                sensorPrep
+ .text.mem_cmp  0xffff2420       0x34 ff.o
+ .text.clust2sect
+                0xffff2454       0x24 ff.o
+ .text.validate
+                0xffff2478       0x40 ff.o
+ .text.move_window
+                0xffff24b8       0x4c ff.o
+ .text.get_cluster
+                0xffff2504      0x130 ff.o
+ .text.check_fs
+                0xffff2634       0x98 ff.o
+ .text.dir_seek.constprop.6
+                0xffff26cc       0xb8 ff.o
+ .text.f_mount  0xffff2784       0x3c ff.o
+                0xffff2784                f_mount
+ .text.f_open   0xffff27c0      0x680 ff.o
+                0xffff27c0                f_open
+ .text.f_read   0xffff2e40      0x1e4 ff.o
+                0xffff2e40                f_read
+ .text.f_lseek  0xffff3024      0x190 ff.o
+                0xffff3024                f_lseek
+ .text.disk_status
+                0xffff31b4       0x18 diskio.o
+                0xffff31b4                disk_status
+ .text.disk_initialize
+                0xffff31cc       0x24 diskio.o
+                0xffff31cc                disk_initialize
+ .text.disk_read
+                0xffff31f0       0x60 diskio.o
+                0xffff31f0                disk_read
+ .text.bus_space_read_2
+                0xffff3250       0x28 sdhc.o
+ .text.bus_space_write_2
+                0xffff3278       0x34 sdhc.o
+ .text.sdhc_card_detect
+                0xffff32ac       0x18 sdhc.o
+                0xffff32ac                sdhc_card_detect
+ .text.sdhc_bus_clock
+                0xffff32c4      0x130 sdhc.o
+                0xffff32c4                sdhc_bus_clock
+ .text.sdhc_wait_state
+                0xffff33f4       0x50 sdhc.o
+                0xffff33f4                sdhc_wait_state
+ .text.sdhc_start_command
+                0xffff3444      0x1c0 sdhc.o
+                0xffff3444                sdhc_start_command
+ .text.sdhc_soft_reset
+                0xffff3604       0xa0 sdhc.o
+                0xffff3604                sdhc_soft_reset
+ .text.sdhc_host_reset
+                0xffff36a4       0x9c sdhc.o
+                0xffff36a4                sdhc_host_reset
+ .text.sdhc_bus_power
+                0xffff3740       0xa8 sdhc.o
+                0xffff3740                sdhc_bus_power
+ .text.sdhc_shutdown
+                0xffff37e8        0xc sdhc.o
+                0xffff37e8                sdhc_shutdown
+ .text.sdhc_host_found
+                0xffff37f4       0xe8 sdhc.o
+                0xffff37f4                sdhc_host_found
+ .text.sdhc_wait_intr_debug
+                0xffff38dc       0x9c sdhc.o
+                0xffff38dc                sdhc_wait_intr_debug
+ .text.sdhc_transfer_data
+                0xffff3978       0xbc sdhc.o
+                0xffff3978                sdhc_transfer_data
+ .text.sdhc_exec_command
+                0xffff3a34      0x164 sdhc.o
+                0xffff3a34                sdhc_exec_command
+ .text.sdhc_intr
+                0xffff3b98      0x140 sdhc.o
+                0xffff3b98                sdhc_intr
+ .text.sdhc_irq
+                0xffff3cd8        0x4 sdhc.o
+                0xffff3cd8                sdhc_irq
+ .text.sdhc_init
+                0xffff3cdc       0x24 sdhc.o
+                0xffff3cdc                sdhc_init
+ .text.sdhc_exit
+                0xffff3d00       0x14 sdhc.o
+                0xffff3d00                sdhc_exit
+ .text.sdhc_ipc
+                0xffff3d14       0x40 sdhc.o
+                0xffff3d14                sdhc_ipc
+ .text.sensorbarOn
+                0xffff3d54       0x1c powerpc_elf.o
+ .text.sensorbarOff
+                0xffff3d70       0x1c powerpc_elf.o
+ .text._check_physrange
+                0xffff3d8c       0x5c powerpc_elf.o
+ .text.virtualToPhysical
+                0xffff3de8       0x40 powerpc_elf.o
+                0xffff3de8                virtualToPhysical
+ .text.powerpc_load_dol
+                0xffff3e28      0x1f8 powerpc_elf.o
+                0xffff3e28                powerpc_load_dol
+ .text.powerpc_boot_file
+                0xffff4020      0x49c powerpc_elf.o
+                0xffff4020                powerpc_boot_file
+ .text.powerpc_boot_mem
+                0xffff44bc      0x1d4 powerpc_elf.o
+                0xffff44bc                powerpc_boot_mem
+ .text.powerpc_upload_stub
+                0xffff4690       0x78 powerpc.o
+                0xffff4690                powerpc_upload_stub
+ .text.powerpc_hang
+                0xffff4708       0x54 powerpc.o
+                0xffff4708                powerpc_hang
+ .text.powerpc_reset
+                0xffff475c       0x98 powerpc.o
+                0xffff475c                powerpc_reset
+ .text.powerpc_ipc
+                0xffff47f4       0xd0 powerpc.o
+                0xffff47f4                powerpc_ipc
+ .text.panic2   0xffff48c4       0xb0 panic.o
+                0xffff48c4                panic2
+ .text.irq_initialize
+                0xffff4974       0x50 irq.o
+                0xffff4974                irq_initialize
+ .text.irq_shutdown
+                0xffff49c4       0x20 irq.o
+                0xffff49c4                irq_shutdown
+ .text.irq_handler
+                0xffff49e4      0x15c irq.o
+                0xffff49e4                irq_handler
+ .text.irq_enable
+                0xffff4b40       0x20 irq.o
+                0xffff4b40                irq_enable
+ .text.irq_disable
+                0xffff4b60       0x20 irq.o
+                0xffff4b60                irq_disable
+ .text.irq_set_alarm
+                0xffff4b80       0x40 irq.o
+                0xffff4b80                irq_set_alarm
+ .text          0xffff4bc0       0x50 irq_asm.o
+                0xffff4bc0                irq_setup_stack
+                0xffff4bd4                v_irq
+                0xffff4be4                irq_kill
+                0xffff4bf8                irq_restore
+ .text.exception_initialize
+                0xffff4c10       0x18 exception.o
+                0xffff4c10                exception_initialize
+ .text.exc_handler
+                0xffff4c28      0x274 exception.o
+                0xffff4c28                exc_handler
+ .text          0xffff4e9c      0x138 exception_asm.o
+                0xffff4e9c                exc_setup_stack
+                0xffff4ecc                v_undf
+                0xffff4ef8                v_swi
+                0xffff4f24                v_instr_abrt
+                0xffff4f50                v_data_abrt
+                0xffff4f7c                v_reserved
+                0xffff4fa8                v_fiq
+ .text.send_bits
+                0xffff4fd4       0x88 seeprom.o
+                0xffff4fd4                send_bits
+ .text.recv_bits
+                0xffff505c       0x6c seeprom.o
+                0xffff505c                recv_bits
+ .text.seeprom_read
+                0xffff50c8       0xa8 seeprom.o
+                0xffff50c8                seeprom_read
+ .text.crypto_read_otp
+                0xffff5170       0x3c crypto.o
+                0xffff5170                crypto_read_otp
+ .text.crypto_read_seeprom
+                0xffff51ac       0x14 crypto.o
+                0xffff51ac                crypto_read_seeprom
+ .text.crypto_initialize
+                0xffff51c0       0x34 crypto.o
+                0xffff51c0                crypto_initialize
+ .text.crypto_ipc
+                0xffff51f4       0x88 crypto.o
+                0xffff51f4                crypto_ipc
+ .text.aes_reset
+                0xffff527c       0x20 crypto.o
+                0xffff527c                aes_reset
+ .text.aes_set_iv
+                0xffff529c       0x24 crypto.o
+                0xffff529c                aes_set_iv
+ .text.aes_set_key
+                0xffff52c0       0x24 crypto.o
+                0xffff52c0                aes_set_key
+ .text.aes_decrypt
+                0xffff52e4       0xf4 crypto.o
+                0xffff52e4                aes_decrypt
+ .text.aes_ipc  0xffff53d8       0x88 crypto.o
+                0xffff53d8                aes_ipc
+ .text.__nand_wait
+                0xffff5460       0x48 nand.o
+                0xffff5460                __nand_wait
+ .text.__nand_set_address
+                0xffff54a8       0x2c nand.o
+                0xffff54a8                __nand_set_address
+ .text.__nand_setup_dma
+                0xffff54d4       0x5c nand.o
+                0xffff54d4                __nand_setup_dma
+ .text.nand_reset
+                0xffff5530       0x50 nand.o
+                0xffff5530                nand_reset
+ .text.nand_get_id
+                0xffff5580       0x68 nand.o
+                0xffff5580                nand_get_id
+ .text.nand_get_status
+                0xffff55e8       0x58 nand.o
+                0xffff55e8                nand_get_status
+ .text.nand_read_page
+                0xffff5640       0xa8 nand.o
+                0xffff5640                nand_read_page
+ .text.nand_write_page
+                0xffff56e8       0xe4 nand.o
+                0xffff56e8                nand_write_page
+ .text.nand_erase_block
+                0xffff57cc       0x94 nand.o
+                0xffff57cc                nand_erase_block
+ .text.nand_initialize
+                0xffff5860       0x24 nand.o
+                0xffff5860                nand_initialize
+ .text.nand_correct
+                0xffff5884       0xe4 nand.o
+                0xffff5884                nand_correct
+ .text.nand_irq
+                0xffff5968      0x138 nand.o
+                0xffff5968                nand_irq
+ .text.nand_ipc
+                0xffff5aa0      0x1ec nand.o
+                0xffff5aa0                nand_ipc
+ .text.sdmmc_select
+                0xffff5c8c       0x94 sdmmc.o
+                0xffff5c8c                sdmmc_select
+ .text.sdmmc_needs_discover
+                0xffff5d20      0x51c sdmmc.o
+                0xffff5d20                sdmmc_needs_discover
+ .text.sdmmc_attach
+                0xffff623c       0x44 sdmmc.o
+                0xffff623c                sdmmc_attach
+ .text.sdmmc_check_card
+                0xffff6280       0x30 sdmmc.o
+                0xffff6280                sdmmc_check_card
+ .text.sdmmc_ack_card
+                0xffff62b0       0x20 sdmmc.o
+                0xffff62b0                sdmmc_ack_card
+ .text.sdmmc_read
+                0xffff62d0       0xf4 sdmmc.o
+                0xffff62d0                sdmmc_read
+ .text.sdmmc_write
+                0xffff63c4       0xf4 sdmmc.o
+                0xffff63c4                sdmmc_write
+ .text.sdmmc_get_sectors
+                0xffff64b8       0x48 sdmmc.o
+                0xffff64b8                sdmmc_get_sectors
+ .text.sdmmc_ipc
+                0xffff6500       0xd4 sdmmc.o
+                0xffff6500                sdmmc_ipc
+ .text          0xffff65d4      0x114 /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_udivsi3.o)
+                0xffff65d4                __udivsi3
+                0xffff65d4                __aeabi_uidiv
+                0xffff66c8                __aeabi_uidivmod
+ .text          0xffff66e8      0x148 /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_divsi3.o)
+                0xffff66e8                __aeabi_idiv
+                0xffff66e8                __divsi3
+                0xffff6810                __aeabi_idivmod
+ .text          0xffff6830        0x4 /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_dvmd_tls.o)
+                0xffff6830                __aeabi_ldiv0
+                0xffff6830                __aeabi_idiv0
+ *(.text.*)
+ *(.gnu.warning)
+ *(.gnu.linkonce.t*)
+ *(.glue_7)
+ .glue_7        0x00000000        0x0 linker stubs
+ *(.glue_7t)
+ .glue_7t       0x00000000        0x0 linker stubs
+                0xffff6834                . = ALIGN (0x4)
+
+.vfp11_veneer   0xffff6834        0x0
+ .vfp11_veneer  0x00000000        0x0 linker stubs
+
+.v4_bx          0xffff6834        0x0
+ .v4_bx         0x00000000        0x0 linker stubs
+
+.iplt           0xffff6834        0x0
+ .iplt          0x00000000        0x0 start.o
+
+.rodata         0xfffe0000      0xfc4
+ *(.rodata)
+ .rodata        0xfffe0000        0x2 main.o
+                0xfffe0000                git_version
+ .rodata        0xfffe0002       0x34 sdhc.o
+ .rodata        0xfffe0036        0xa powerpc_elf.o
+ .rodata        0xfffe0040       0x70 sdmmc.o
+ *all.rodata*(*)
+ *(.roda)
+ *(.rodata.*)
+ .rodata.str1.1
+                0xfffe00b0      0x236 main.o
+ .rodata.str1.1
+                0xfffe02e6       0xf8 ipc.o
+ .rodata.str1.1
+                0xfffe03de       0x2f vsprintf.o
+ .rodata.str1.1
+                0xfffe040d       0x24 gecko.o
+ .rodata.str1.1
+                0xfffe0431       0xe9 memory.o
+ .rodata.str1.1
+                0xfffe051a       0x1a ff.o
+ .rodata.str1.1
+                0xfffe0534      0x184 sdhc.o
+ .rodata.str1.1
+                0xfffe06b8      0x15e powerpc_elf.o
+ .rodata.str1.1
+                0xfffe0816       0x43 powerpc.o
+                                 0x64 (size before relaxing)
+ .rodata.str1.1
+                0xfffe0859       0x15 irq.o
+ .rodata.str1.1
+                0xfffe086e      0x240 exception.o
+ .rodata.str1.1
+                0xfffe0aae       0x4b crypto.o
+ .rodata.str1.1
+                0xfffe0af9      0x1cb nand.o
+ .rodata.str1.1
+                0xfffe0cc4      0x2fd sdmmc.o
+                                0x2ff (size before relaxing)
+ *(.gnu.linkonce.r*)
+                0xfffe0fc4                . = ALIGN (0x4)
+ *fill*         0xfffe0fc1        0x3 00
+
+.rel.dyn        0xfffe0fc4        0x0
+ .rel.iplt      0x00000000        0x0 start.o
+
+.data           0xfffe0fc4       0x78
+ *(.data)
+ .data          0xfffe0fc4       0x74 exception.o
+                0xfffe0fc4                exceptions
+                0xfffe0fe8                aborts
+                0xfffe1028                domvalid
+ .data          0xfffe1038        0x4 nand.o
+ *(.data.*)
+ *(.gnu.linkonce.d*)
+                0xfffe103c                . = ALIGN (0x4)
+
+.igot.plt       0xfffe103c        0x0
+ .igot.plt      0x00000000        0x0 start.o
+
+.bss            0xfffe103c     0x15a4
+                0xfffe103c                __bss_start = .
+ *(.dynbss)
+ *(.gnu.linkonce.b*)
+ *(.bss*)
+ .bss           0xfffe103c     0x100c ipc.o
+ .bss           0xfffe2048       0x1c gecko.o
+ .bss           0xfffe2064        0x8 ff.o
+ .bss           0xfffe206c      0x174 powerpc_elf.o
+ .bss           0xfffe21e0        0x4 irq.o
+ .bss           0xfffe21e4        0x4 crypto.o
+ .bss           0xfffe21e8       0x28 nand.o
+ *(COMMON)
+ COMMON         0xfffe2210      0x224 main.o
+                0xfffe2210                fatfs
+ COMMON         0xfffe2434       0x2c sdhc.o
+                0xfffe2434                sc_host
+ COMMON         0xfffe2460      0x180 crypto.o
+                0xfffe2460                otp
+                0xfffe24e0                seeprom
+                0xfffe25e0                . = ALIGN (0x4)
+                0xfffe25e0                __bss_end = .
+
+.stack          0xfffe25e0      0xa00
+                0xfffe25e0                . = ALIGN (0x10)
+                0xfffe25e0                __stack_end = .
+                0xfffe2de0                . = (. + __stack_size)
+ *fill*         0xfffe25e0      0x800 00
+                0xfffe2de0                . = ALIGN (0x10)
+                0xfffe2de0                __stack_addr = .
+                0xfffe2de0                __irqstack_end = .
+                0xfffe2ee0                . = (. + __irqstack_size)
+ *fill*         0xfffe2de0      0x100 00
+                0xfffe2ee0                . = ALIGN (0x10)
+                0xfffe2ee0                __irqstack_addr = .
+                0xfffe2ee0                __excstack_end = .
+                0xfffe2fe0                . = (. + __excstack_size)
+ *fill*         0xfffe2ee0      0x100 00
+                0xfffe2fe0                . = ALIGN (0x10)
+                0xfffe2fe0                __excstack_addr = .
+
+/DISCARD/
+ *(.ARM.exidx*)
+ *(.ARM.extab*)
+LOAD start.o
+LOAD main.o
+LOAD ipc.o
+LOAD vsprintf.o
+LOAD string.o
+LOAD gecko.o
+LOAD memory.o
+LOAD memory_asm.o
+LOAD utils_asm.o
+LOAD utils.o
+LOAD ff.o
+LOAD diskio.o
+LOAD sdhc.o
+LOAD powerpc_elf.o
+LOAD powerpc.o
+LOAD panic.o
+LOAD irq.o
+LOAD irq_asm.o
+LOAD exception.o
+LOAD exception_asm.o
+LOAD seeprom.o
+LOAD crypto.o
+LOAD nand.o
+LOAD boot2.o
+LOAD ldhack.o
+LOAD sdmmc.o
+LOAD /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a
+OUTPUT(armboot-sym.elf elf32-bigarm)
+
+.ARM.attributes
+                0x00000000       0x30
+ .ARM.attributes
+                0x00000000       0x24 start.o
+ .ARM.attributes
+                0x00000024       0x34 main.o
+ .ARM.attributes
+                0x00000058       0x34 ipc.o
+ .ARM.attributes
+                0x0000008c       0x34 vsprintf.o
+ .ARM.attributes
+                0x000000c0       0x34 string.o
+ .ARM.attributes
+                0x000000f4       0x34 gecko.o
+ .ARM.attributes
+                0x00000128       0x34 memory.o
+ .ARM.attributes
+                0x0000015c       0x24 memory_asm.o
+ .ARM.attributes
+                0x00000180       0x24 utils_asm.o
+ .ARM.attributes
+                0x000001a4       0x34 utils.o
+ .ARM.attributes
+                0x000001d8       0x34 ff.o
+ .ARM.attributes
+                0x0000020c       0x34 diskio.o
+ .ARM.attributes
+                0x00000240       0x34 sdhc.o
+ .ARM.attributes
+                0x00000274       0x34 powerpc_elf.o
+ .ARM.attributes
+                0x000002a8       0x34 powerpc.o
+ .ARM.attributes
+                0x000002dc       0x34 panic.o
+ .ARM.attributes
+                0x00000310       0x34 irq.o
+ .ARM.attributes
+                0x00000344       0x24 irq_asm.o
+ .ARM.attributes
+                0x00000368       0x34 exception.o
+ .ARM.attributes
+                0x0000039c       0x24 exception_asm.o
+ .ARM.attributes
+                0x000003c0       0x34 seeprom.o
+ .ARM.attributes
+                0x000003f4       0x34 crypto.o
+ .ARM.attributes
+                0x00000428       0x34 nand.o
+ .ARM.attributes
+                0x0000045c       0x34 sdmmc.o
+ .ARM.attributes
+                0x00000490       0x1a /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_udivsi3.o)
+ .ARM.attributes
+                0x000004aa       0x1a /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_divsi3.o)
+ .ARM.attributes
+                0x000004c4       0x18 /Users/tal/devkitPro/devkitARM/bin/../lib/gcc/arm-none-eabi/4.7.1/be/libgcc.a(_dvmd_tls.o)
+
+.comment        0x00000000       0x22
+ .comment       0x00000000       0x22 main.o
+                                 0x23 (size before relaxing)
+ .comment       0x00000000       0x23 ipc.o
+ .comment       0x00000000       0x23 vsprintf.o
+ .comment       0x00000000       0x23 string.o
+ .comment       0x00000000       0x23 gecko.o
+ .comment       0x00000000       0x23 memory.o
+ .comment       0x00000000       0x23 utils.o
+ .comment       0x00000000       0x23 ff.o
+ .comment       0x00000000       0x23 diskio.o
+ .comment       0x00000000       0x23 sdhc.o
+ .comment       0x00000000       0x23 powerpc_elf.o
+ .comment       0x00000000       0x23 powerpc.o
+ .comment       0x00000000       0x23 panic.o
+ .comment       0x00000000       0x23 irq.o
+ .comment       0x00000000       0x23 exception.o
+ .comment       0x00000000       0x23 seeprom.o
+ .comment       0x00000000       0x23 crypto.o
+ .comment       0x00000000       0x23 nand.o
+ .comment       0x00000000       0x23 sdmmc.o
