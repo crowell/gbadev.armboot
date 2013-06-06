@@ -17,7 +17,6 @@ Copyright (C) 2008, 2009	Hector Martin "marcan" <marcan@marcansoft.com>
 #define PANIC_ON	200000
 #define PANIC_OFF	300000
 #define PANIC_INTER	1000000
-#define HW_GPIO1_SENSE 0x100
 
 // figure out a use for mode...
 
