@@ -62,6 +62,7 @@ Copyright (C) 2008, 2009	John Kelley <wiidev@kelley.ca>
 #define		HW_GPIO1ENABLE		(HW_REG_BASE + 0x0dc)
 
 #define		HW_GPIO1_SLOT		0x000020
+#define 	HW_GPIO1_SENSE		0x000100
 #define		HW_GPIO1_DEBUG		0xFF0000
 #define		HW_GPIO1_DEBUG_SH	16
 
