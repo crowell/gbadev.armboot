@@ -153,7 +153,7 @@ int powerpc_load_dol(const char *path, u32 *endAddress)
 		gecko_printf("Section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeData[ii], dol_hdr.offsetData[ii], virtualToPhysical(dol_hdr.addressData[ii]));
 	}
 	if (endAddress)
-	{	*endAddress = end - 1;
+	{	*endAddress = end - 4;
 		gecko_printf("endAddress = %08x\n", *endAddress);
 	}
 	return 0;
@@ -308,28 +308,28 @@ int powerpc_boot_file(const char *path)
 	Elf32_Phdr *phdr = phdrs;
 
 	while (count--) {
-			if (phdr->p_type != PT_LOAD) {
-					gecko_printf("Skipping PHDR of type %d\n", phdr->p_type);
-			} else {
-					if (_check_physrange(phdr->p_paddr, phdr->p_memsz) < 0) {
-							gecko_printf("PHDR out of bounds [0x%08x...0x%08x]\n",
-															phdr->p_paddr, phdr->p_paddr + phdr->p_memsz);
-							return -106;
-					}
-
-					void *dst = (void *) phdr->p_paddr;
-
-					gecko_printf("LOAD 0x%x @0x%08x [0x%x]\n", phdr->p_offset, phdr->p_paddr, phdr->p_filesz);
-					fres = f_lseek(&fd, phdr->p_offset);
-					if (fres != FR_OK)
-							return -fres;
-					fres = f_read(&fd, dst, phdr->p_filesz, &read);
-					if (fres != FR_OK)
-							return -fres;
-					if (read != phdr->p_filesz)
-							return -107;
+		if (phdr->p_type != PT_LOAD) {
+			gecko_printf("Skipping PHDR of type %d\n", phdr->p_type);
+		} else {
+			if (_check_physrange(phdr->p_paddr, phdr->p_memsz) < 0) {
+				gecko_printf("PHDR out of bounds [0x%08x...0x%08x]\n",
+								phdr->p_paddr, phdr->p_paddr + phdr->p_memsz);
+				return -106;
 			}
-			phdr++;
+
+			void *dst = (void *) phdr->p_paddr;
+
+			gecko_printf("LOAD 0x%x @0x%08x [0x%x]\n", phdr->p_offset, phdr->p_paddr, phdr->p_filesz);
+			fres = f_lseek(&fd, phdr->p_offset);
+			if (fres != FR_OK)
+				return -fres;
+			fres = f_read(&fd, dst, phdr->p_filesz, &read);
+			if (fres != FR_OK)
+				return -fres;
+			if (read != phdr->p_filesz)
+				return -107;
+		}
+		phdr++;
 	}
 
 	//powerpc_upload_stub(0x1800, elfhdr.e_entry);
