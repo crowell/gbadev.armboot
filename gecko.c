@@ -23,6 +23,7 @@ Copyright (C) 2009		Andre Heider "dhewg" <dhewg@wiibrew.org>
 #include "powerpc.h"
 #include "powerpc_elf.h"
 #include "gecko.h"
+#include "memory.h"
 
 static u8 gecko_found = 0;
 static u8 gecko_enabled = 0;
@@ -254,8 +255,7 @@ int gecko_printf(const char *fmt, ...)
 			dc_invalidaterange((void*)0x01200000,32);
 		while(read8(0x01200000));
 		fmt++;
-	}return;
-	
+	}
 	return 0;
 #ifdef GECKO_SAFE
 	return gecko_sendbuffer_safe(buffer, i);

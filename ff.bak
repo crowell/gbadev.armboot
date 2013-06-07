@@ -823,8 +823,6 @@ FRESULT dir_find (
 			}
 		}
 #else	/* Non LFN configuration */
-		(void )ord;
-		(void )lfen;
 		if (c != 0xE5 && c != '.' && !(a & AM_VOL) && !mem_cmp(dir, dj->fn, 11)) /* Is it a valid entry? */
 			break;
 #endif

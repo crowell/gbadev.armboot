@@ -22,7 +22,8 @@ Copyright (C) 2010			Alex Marshall <trap15@raidenii.net>
 
 void powerpc_upload_stub(u32 start, u32 entry)
 {
-	u32 i;
+	(void )start;
+	//u32 i;
 
 //	set32(HW_EXICTRL, EXICTRL_ENABLE_EXI);
 
