@@ -1,6 +1,6 @@
 /*
-        mini - a Free Software replacement for the Nintendo/BroadOn IOS.
-        PowerPC ELF file loading
+	mini - a Free Software replacement for the Nintendo/BroadOn IOS.
+	PowerPC ELF file loading
 
 Copyright (C) 2008, 2009        Hector Martin "marcan" <marcan@marcansoft.com>
 Copyright (C) 2009                      Andre Heider "dhewg" <dhewg@wiibrew.org>
@@ -52,10 +52,10 @@ struct dol_t
 
 static int _check_physaddr(u32 addr) {
 	if ((addr >= PPC_MEM2_START) && (addr <= PPC_MEM2_END))
-			return 2;
+		return 2;
 
 	if (addr < PPC_MEM1_END)
-			return 1;
+		return 1;
 
 	return -1;
 }
@@ -63,13 +63,13 @@ static int _check_physaddr(u32 addr) {
 static int _check_physrange(u32 addr, u32 len) {
 	switch (_check_physaddr(addr)) {
 	case 1:
-			if ((addr + len) < PPC_MEM1_END)
-					return 1;
-			break;
+		if ((addr + len) < PPC_MEM1_END)
+			return 1;
+		break;
 	case 2:
-			if ((addr + len) < PPC_MEM2_END)
-					return 2;
-			break;
+		if ((addr + len) < PPC_MEM2_END)
+			return 2;
+		break;
 	}
 
 	return -1;
@@ -89,7 +89,7 @@ u32 makeRelativeBranch(u32 currAddr, u32 destAddr, bool linked)
 {
 	u32 ret = 0x48000000 | (( destAddr - currAddr ) & 0x3FFFFFC );
 	if(linked)
-			ret |= 1;
+		ret |= 1;
 	return ret;
 }
 
@@ -110,50 +110,50 @@ int powerpc_load_dol(const char *path, u32 *endAddress)
 	gecko_printf("Loading DOL file: %s .\n", path);
 	fres = f_open(&fd, path, FA_READ);
 	if (fres != FR_OK)
-			return -fres;
+		return -fres;
 
 	fres = f_read(&fd, &dol_hdr, sizeof(dol_t), &read);
 	if (fres != FR_OK)
-			return -fres;
+		return -fres;
 
 	u32 end = 0;
 	int ii;
 
 	/* TEXT SECTIONS */
 	for (ii = 0; ii < 7; ii++)
-	{		//gecko_printf("Loading text section %d .\n", ii);
-			if (!dol_hdr.sizeText[ii])
-					continue;
-			fres = f_lseek(&fd, dol_hdr.offsetText[ii]);
-			if (fres != FR_OK)
-					return -fres;
-			u32 phys = virtualToPhysical(dol_hdr.addressText[ii]);
-			fres = f_read(&fd, (void*)phys, dol_hdr.sizeText[ii], &read);
-			if (fres != FR_OK)
-					return -fres;
-			if (phys + dol_hdr.sizeText[ii] > end)
-					end = phys + dol_hdr.sizeText[ii];
-			gecko_printf("Section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeText[ii], dol_hdr.offsetText[ii], dol_hdr.addressText[ii]);
+	{
+		if (!dol_hdr.sizeText[ii])
+			continue;
+		fres = f_lseek(&fd, dol_hdr.offsetText[ii]);
+		if (fres != FR_OK)
+			return -fres;
+		u32 phys = virtualToPhysical(dol_hdr.addressText[ii]);
+		fres = f_read(&fd, (void*)phys, dol_hdr.sizeText[ii], &read);
+		if (fres != FR_OK)
+			return -fres;
+		if (phys + dol_hdr.sizeText[ii] > end)
+			end = phys + dol_hdr.sizeText[ii];
+		gecko_printf("Section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeText[ii], dol_hdr.offsetText[ii], dol_hdr.addressText[ii]);
 	}
 
 	/* DATA SECTIONS */
 	for (ii = 0; ii < 11; ii++)
-	{		gecko_printf("Loading data section %d .\n", ii);
-			if (!dol_hdr.sizeData[ii])
-					continue;
-			fres = f_lseek(&fd, dol_hdr.offsetData[ii]);
-			if (fres != FR_OK)
-					return -fres;
-			u32 phys = virtualToPhysical(dol_hdr.addressData[ii]);
-			fres = f_read(&fd, (void*)phys, dol_hdr.sizeData[ii], &read);
-			if (fres != FR_OK)
-					return -fres;
-			if (phys + dol_hdr.sizeData[ii] > end)
-					end = phys + dol_hdr.sizeData[ii];
-			gecko_printf("Section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeData[ii], dol_hdr.offsetData[ii], dol_hdr.addressData[ii]);
+	{
+		if (!dol_hdr.sizeData[ii])
+			continue;
+		fres = f_lseek(&fd, dol_hdr.offsetData[ii]);
+		if (fres != FR_OK)
+			return -fres;
+		u32 phys = virtualToPhysical(dol_hdr.addressData[ii]);
+		fres = f_read(&fd, (void*)phys, dol_hdr.sizeData[ii], &read);
+		if (fres != FR_OK)
+			return -fres;
+		if (phys + dol_hdr.sizeData[ii] > end)
+			end = phys + dol_hdr.sizeData[ii];
+		gecko_printf("Section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeData[ii], dol_hdr.offsetData[ii], dol_hdr.addressData[ii]);
 	}
 	if (endAddress)
-			*endAddress = (end - 1) & ~3;
+		*endAddress = (end - 1) & ~3;
 	gecko_printf("endAddress = %08x\n", *endAddress);
 	return 0;
 }
@@ -257,8 +257,9 @@ int powerpc_boot_file(const char *path)
 	//sensorbarOff();
 	//udelay(300000);
 
-	powerpc_upload_stub_100();
-	powerpc_upload_stub_1800_2();
+	//powerpc_upload_stub_100();
+	//powerpc_upload_stub_1800_2();
+	write32(0x1800, 0xAAAAAAAA);
 
 	sensorbarOn();
 	udelay(300000);
@@ -266,12 +267,12 @@ int powerpc_boot_file(const char *path)
 
 	sensorbarOff();
 	udelay(300000);
-    set32(HW_GPIO1OWNER, HW_GPIO1_SENSE);
+    //set32(HW_GPIO1OWNER, HW_GPIO1_SENSE);
 	//powerpc_reset();
 	gecko_printf("Resetting PPC. End debug output.\n");
 	gecko_enable(0);
 	
-	u32 oldValue = read32(0x1330100);
+	u32 oldValue = read32(0x1330108);
 	
 	//reboot ppc site
 	clear32(HW_RESETS, 0x30);
@@ -281,29 +282,30 @@ int powerpc_boot_file(const char *path)
 	set32(HW_RESETS, 0x10);
 
 	do
-	{       dc_invalidaterange((void*)0x1330100,32);
-			ahb_flush_from(AHB_1);
-	}while(oldValue == read32(0x1330100));
+	{	dc_invalidaterange((void*)0x1330100,32);
+		ahb_flush_from(AHB_1);
+	}while(oldValue == read32(0x1330108));
 
 	// where core 0 will end up once the ROM is done decrypting 1-200
-	write32(0x1330100, makeAbsoluteBranch(0x100, false));
+	write32(0x1330100, 0x3c600000); // lis r3,0
+	write32(0x1330104, 0x90831800); // stw r4,(0x1800)r3
+	write32(0x1330108, 0x48000000); // infinite loop
 	dc_flushrange((void*)0x1330100,32);
 
 	//sensorbarOn();
-	/*oldValue = read32(0x1330100);
+	//oldValue = read32(0x1330100);
 
 	// wait for decryption / validation to finish and PPC to flag that we have control.
 	do
-	{       dc_invalidaterange((void*)0x1330100,32);
-			ahb_flush_from(AHB_1);
-	}while(oldValue== read32(0x1330100));
-	*/      udelay(2000000);
+	{	dc_invalidaterange((void*)0x1800,32);
+		ahb_flush_from(AHB_1);
+	}while(0xAAAAAAAA == read32(0x1800));
+	//      udelay(2000000);
 	//        udelay(300000);
 	//sensorbarOff();
 	//udelay(300000);
-	/*      sensorbarOn();
-	udelay(300000);
-	*/
+	sensorbarOn();
+	//udelay(300000);
 
  //this forces arm into ipc loop
 	return 0;
