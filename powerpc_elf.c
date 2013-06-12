@@ -133,7 +133,8 @@ int powerpc_load_dol(const char *path, u32 *endAddress)
 			return -fres;
 		if (phys + dol_hdr.sizeText[ii] > end)
 			end = phys + dol_hdr.sizeText[ii];
-		gecko_printf("Section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeText[ii], dol_hdr.offsetText[ii], dol_hdr.addressText[ii]);
+		gecko_printf("Text section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeText[ii], dol_hdr.offsetText[ii], phys);
+		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+(dol_hdr.sizeText[ii] - 1) & ~3),phys+(dol_hdr.sizeText[ii] - 1) & ~3);
 	}
 
 	/* DATA SECTIONS */
@@ -150,7 +151,8 @@ int powerpc_load_dol(const char *path, u32 *endAddress)
 			return -fres;
 		if (phys + dol_hdr.sizeData[ii] > end)
 			end = phys + dol_hdr.sizeData[ii];
-		gecko_printf("Section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeData[ii], dol_hdr.offsetData[ii], dol_hdr.addressData[ii]);
+		gecko_printf("Data section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeData[ii], dol_hdr.offsetData[ii], phys);
+		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+(dol_hdr.sizeData[ii] - 1) & ~3),phys+(dol_hdr.sizeData[ii] - 1) & ~3);
 	}
 	if (endAddress)
 		*endAddress = (end - 1) & ~3;
@@ -251,7 +253,7 @@ int powerpc_boot_file(const char *path)
 
 	//sensorbarOn();
 	//udelay(300000);
-	//oldValue2 = read32(decryptionEndAddress);
+	//u32 oldValue2 = read32(decryptionEndAddress);
 	//u32 Core0JumpInstruction = makeAbsoluteBranch(0x100, false);
 	// We'll trap PPC here with an infinite loop until we're done loading other stuff
 	//sensorbarOff();
@@ -259,22 +261,26 @@ int powerpc_boot_file(const char *path)
 
 	//powerpc_upload_stub_100();
 	//powerpc_upload_stub_1800_2();
-	write32(0x1800, 0xAAAAAAAA);
+	//write32(0x1800, 0xAAAAAAAA);
 
-	sensorbarOn();
-	udelay(300000);
+	//sensorbarOff();
+	//udelay(300000);
 	dc_flushall();
 
-	sensorbarOff();
+	sensorbarOn();
 	udelay(300000);
     //set32(HW_GPIO1OWNER, HW_GPIO1_SENSE);
 	//powerpc_reset();
 	gecko_printf("Resetting PPC. End debug output.\n");
 	gecko_enable(0);
 	
-	u32 oldValue = read32(0x1330108);
 	
-	//reboot ppc site
+	//this will give us some dwords to work with
+
+
+	u32 oldValue = read32(0x1330118);
+	
+	//reboot ppc side
 	clear32(HW_RESETS, 0x30);
 	udelay(100);
 	set32(HW_RESETS, 0x20);
@@ -282,28 +288,40 @@ int powerpc_boot_file(const char *path)
 	set32(HW_RESETS, 0x10);
 
 	do
-	{	dc_invalidaterange((void*)0x1330100,32);
+	{	dc_invalidaterange((void*)0x1330118,32);
 		ahb_flush_from(AHB_1);
-	}while(oldValue == read32(0x1330108));
+	}while(oldValue == read32(0x1330118));
 
+	oldValue = read32(0x1330118);
 	// where core 0 will end up once the ROM is done decrypting 1-200
-	write32(0x1330100, 0x3c600000); // lis r3,0
-	write32(0x1330104, 0x90831800); // stw r4,(0x1800)r3
-	write32(0x1330108, 0x48000000); // infinite loop
+//	write32(0x1330100, 0x3c600000); // lis r3,0
+//	write32(0x1330104, 0x90831800); // stw r4,(0x1800)r3
+//	write32(0x1330108, 0x48000000); // infinite loop
+
+//	write32(0x1330100, 0x3c600133); // lis r3,0x0133
+	write32(0x1330100, 0x48000005); // branch 1 instruction ahead and link, loading the address of the next instruction (0x1330104) into lr
+	write32(0x1330104, 0x7c6802a6); // mflr r3
+	write32(0x1330108, 0x90830114); // stw r4,(0x0114)r3
+ 	write32(0x133010C, 0x7c0004ac); // sync
+	write32(0x1330110, 0x48000000); // infinite loop
+	
+	write32(0x1330118, 0xAAAAAAAA); // flag location
+
+
 	dc_flushrange((void*)0x1330100,32);
 
-	//sensorbarOn();
+	sensorbarOff();
 	//oldValue = read32(0x1330100);
 
-	// wait for decryption / validation to finish and PPC to flag that we have control.
+	// wait for decryption / validation to finish
 	do
-	{	dc_invalidaterange((void*)0x1800,32);
+	{	dc_invalidaterange((void*)0x1330118,32);
 		ahb_flush_from(AHB_1);
-	}while(0xAAAAAAAA == read32(0x1800));
+	}while(0xAAAAAAAA == read32(0x1330118));
 	//      udelay(2000000);
 	//        udelay(300000);
 	//sensorbarOff();
-	//udelay(300000);
+	udelay(300000);
 	sensorbarOn();
 	//udelay(300000);
 
