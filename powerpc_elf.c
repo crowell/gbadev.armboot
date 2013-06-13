@@ -279,7 +279,9 @@ int powerpc_boot_file(const char *path)
 
 
 	u32 oldValue = read32(0x1330118);
-	
+   
+   set32(HW_DIFLAGS,DIFLAGS_BOOT_CODE);
+
 	//reboot ppc side
 	clear32(HW_RESETS, 0x30);
 	udelay(100);
@@ -301,7 +303,7 @@ int powerpc_boot_file(const char *path)
 //	write32(0x1330100, 0x3c600133); // lis r3,0x0133
 	write32(0x1330100, 0x48000005); // branch 1 instruction ahead and link, loading the address of the next instruction (0x1330104) into lr
 	write32(0x1330104, 0x7c6802a6); // mflr r3
-	write32(0x1330108, 0x90830114); // stw r4,(0x0114)r3
+	write32(0x1330108, 0x90830014); // stw r4,(0x0014)r3
  	write32(0x133010C, 0x7c0004ac); // sync
 	write32(0x1330110, 0x48000000); // infinite loop
 	
