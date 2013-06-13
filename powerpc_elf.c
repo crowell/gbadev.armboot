@@ -246,7 +246,7 @@ int powerpc_boot_file(const char *path)
 	udelay(300000);
 	sensorbarOn();
 	udelay(300000);
-	fres = powerpc_load_dol("/bootmii/00000003.app", &decryptionEndAddress);
+	fres = powerpc_load_dol("/bootmii/00000001.app", &decryptionEndAddress);
 	gecko_printf("powerpc_load_dol returned %d .\n", fres);
 	sensorbarOff();
 	udelay(300000);
