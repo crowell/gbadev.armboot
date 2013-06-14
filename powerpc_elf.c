@@ -155,7 +155,7 @@ int powerpc_load_dol(const char *path, u32 *endAddress)
 		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+(dol_hdr.sizeData[ii] - 1) & ~3),phys+(dol_hdr.sizeData[ii] - 1) & ~3);
 	}
 	if (endAddress)
-		*endAddress = (end - 1) & ~3;
+		*endAddress = end - 1;
 	gecko_printf("endAddress = %08x\n", *endAddress);
 	return 0;
 }
@@ -237,23 +237,24 @@ void powerpc_upload_stub_1800(void)
 int powerpc_boot_file(const char *path)
 {
 //	u32 read;
-//	FIL fd;
+	FIL fd;
 	FRESULT fres;
 
 	// do race attack here
-	u32 decryptionEndAddress;
+	u32 decryptionEndAddress, endAddress;
 	//powerpc_hang();
 	udelay(300000);
 	sensorbarOn();
 	udelay(300000);
-	fres = powerpc_load_dol("/bootmii/00000001.app", &decryptionEndAddress);
+	fres = powerpc_load_dol("/bootmii/00000003.app", &endAddress);
+	decryptionEndAddress = endAddress & ~3; 
 	gecko_printf("powerpc_load_dol returned %d .\n", fres);
 	sensorbarOff();
 	udelay(300000);
 
 	//sensorbarOn();
 	//udelay(300000);
-	//u32 oldValue2 = read32(decryptionEndAddress);
+	u32 oldValue2 = read32(decryptionEndAddress);
 	//u32 Core0JumpInstruction = makeAbsoluteBranch(0x100, false);
 	// We'll trap PPC here with an infinite loop until we're done loading other stuff
 	//sensorbarOff();
@@ -278,7 +279,7 @@ int powerpc_boot_file(const char *path)
 	//this will give us some dwords to work with
 
 
-	u32 oldValue = read32(0x1330118);
+	u32 oldValue = read32(0x1330100);
    
    set32(HW_DIFLAGS,DIFLAGS_BOOT_CODE);
 
@@ -290,39 +291,62 @@ int powerpc_boot_file(const char *path)
 	set32(HW_RESETS, 0x10);
 
 	do
-	{	dc_invalidaterange((void*)0x1330118,32);
+	{	dc_invalidaterange((void*)0x1330100,32);
 		ahb_flush_from(AHB_1);
-	}while(oldValue == read32(0x1330118));
+	}while(oldValue == read32(0x1330100));
 
-	oldValue = read32(0x1330118);
+	oldValue = read32(0x1330100);
 	// where core 0 will end up once the ROM is done decrypting 1-200
 //	write32(0x1330100, 0x3c600000); // lis r3,0
 //	write32(0x1330104, 0x90831800); // stw r4,(0x1800)r3
 //	write32(0x1330108, 0x48000000); // infinite loop
 
 //	write32(0x1330100, 0x3c600133); // lis r3,0x0133
-	write32(0x1330100, 0x48000005); // branch 1 instruction ahead and link, loading the address of the next instruction (0x1330104) into lr
+/*	write32(0x1330100, 0x48000005); // branch 1 instruction ahead and link, loading the address of the next instruction (0x1330104) into lr
 	write32(0x1330104, 0x7c6802a6); // mflr r3
 	write32(0x1330108, 0x90830014); // stw r4,(0x0014)r3
  	write32(0x133010C, 0x7c0004ac); // sync
 	write32(0x1330110, 0x48000000); // infinite loop
 	
 	write32(0x1330118, 0xAAAAAAAA); // flag location
-
-
+*/
+	write32(0x1330100, 0x48000000); // infinite loop
 	dc_flushrange((void*)0x1330100,32);
 
 	sensorbarOff();
-	//oldValue = read32(0x1330100);
 
+	// make sure decryption / validation didn't finish yet
+	dc_invalidaterange((void*)decryptionEndAddress,32);
+	ahb_flush_from(AHB_1);
+	if(oldValue2 != read32(decryptionEndAddress))
+		panic(0);
+	
 	// wait for decryption / validation to finish
 	do
+	{	dc_invalidaterange((void*)decryptionEndAddress,32);
+		ahb_flush_from(AHB_1);
+	}while(oldValue2 == read32(decryptionEndAddress));
+
+	//dump decrypted memory area
+	u32 writeLength;
+	fres = f_open(&fd, "/bootmii/dump.bin", FA_CREATE_ALWAYS);
+	if (fres != FR_OK)
+		return -fres;
+	fres = f_write(&fd, &oldValue, 4, &writeLength);
+	if (fres != FR_OK)
+		return -fres;
+	fres = f_write(&fd, (void*)0x1330104, endAddress+1-0x1330104,&writeLength);
+	if (fres != FR_OK)
+		return -fres;
+	fres = f_close(&fd);
+	if (fres != FR_OK)
+		return -fres;	
+
+/*	do
 	{	dc_invalidaterange((void*)0x1330118,32);
 		ahb_flush_from(AHB_1);
 	}while(0xAAAAAAAA == read32(0x1330118));
-	//      udelay(2000000);
-	//        udelay(300000);
-	//sensorbarOff();
+*/
 	udelay(300000);
 	sensorbarOn();
 	//udelay(300000);

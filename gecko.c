@@ -24,10 +24,12 @@ Copyright (C) 2009		Andre Heider "dhewg" <dhewg@wiibrew.org>
 #include "powerpc_elf.h"
 #include "gecko.h"
 #include "memory.h"
+#include "ff.h"
 
 static u8 gecko_found = 0;
 static u8 gecko_enabled = 0;
 static u8 gecko_console_enabled = 0;
+static FIL logFile;
 
 static u32 _gecko_command(u32 command)
 {
@@ -220,7 +222,13 @@ void gecko_init(void)
 	gecko_console_enabled = 1;
 }
 
-u8 gecko_enable(const u8 enable){return gecko_enabled = enable;}
+u8 gecko_enable(const u8 enable)
+{	if(gecko_enabled && !enable)
+	{	f_open(&logFile, "/bootmii/log.txt", FA_CREATE_ALWAYS);
+		return gecko_enabled = 2;
+	}
+	return gecko_enabled = enable;
+}
 
 u8 gecko_enable_console(const u8 enable)
 {
@@ -237,9 +245,7 @@ u8 gecko_enable_console(const u8 enable)
 int gecko_printf(const char *fmt, ...)
 {	
 	if(!gecko_enabled)
-	//if (!gecko_console_enabled)
 		return 0;
-
 	va_list args;
 	char buffer[256];
 	int i;
@@ -248,14 +254,17 @@ int gecko_printf(const char *fmt, ...)
 	i = vsprintf(buffer, fmt, args);
 	va_end(args);
 	fmt = buffer;
-	while(*fmt)
-	{	write8(0x01200000, *fmt);
-		dc_flushrange((void*)0x01200000,32);
-		do
-			dc_invalidaterange((void*)0x01200000,32);
-		while(read8(0x01200000));
-		fmt++;
-	}
+	if(gecko_enabled == 1)
+		while(*fmt)
+		{	write8(0x01200000, *fmt);
+			dc_flushrange((void*)0x01200000,32);
+			do
+				dc_invalidaterange((void*)0x01200000,32);
+			while(read8(0x01200000));
+			fmt++;
+		}
+	else if(gecko_enabled == 2)
+		f_puts(fmt, &logFile);
 	return 0;
 #ifdef GECKO_SAFE
 	return gecko_sendbuffer_safe(buffer, i);

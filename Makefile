@@ -36,7 +36,7 @@ $(TARGET_STRIPPED): $(TARGET)
 	@$(STRIP) $< -o $@
 
 $(TARGET_BIN): $(TARGET_STRIPPED) $(ELFLOADER)
-	@echo  "MAKEBIN	$@"
+	echo  "MAKEBIN	$@"
 	@$(MAKEBIN) $(ELFLOADER) $< $@
 
 upload: $(TARGET_BIN)
