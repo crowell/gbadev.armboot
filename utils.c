@@ -102,3 +102,16 @@ void flashSensor(u32 before, u32 during, u32 after)
 	udelay(after);
 }
 
+void binaryPanic(u32 value)
+{	sensorbarOff();
+	while(1)
+	{	u32 shifter = value;
+		udelay(700000);
+		do
+		{	if(shifter&1)
+				flashSensor(300000,600000,0);
+			else flashSensor(300000,300000,0);
+			shifter>>=1;
+		}while(flashSensor);
+	}
+}

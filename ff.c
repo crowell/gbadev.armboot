@@ -66,6 +66,7 @@
 
 #include "ff.h"			/* FatFs configurations and declarations */
 #include "diskio.h"		/* Declarations of low level disk I/O functions */
+DWORD get_fattime (void){return 0;}	
 
 
 /*--------------------------------------------------------------------------
@@ -1607,8 +1608,8 @@ FRESULT f_open (
 		}
 		if (mode & FA_CREATE_ALWAYS) {
 			dir[DIR_Attr] = 0;					/* Reset attribute */
-//			ps = get_fattime();
-//			ST_DWORD(dir+DIR_CrtTime, ps);		/* Created time */
+			ps = get_fattime();
+			ST_DWORD(dir+DIR_CrtTime, ps);		/* Created time */
 			dj.fs->wflag = 1;
 			mode |= FA__WRITTEN;				/* Set file changed flag */
 		}
@@ -1874,8 +1875,8 @@ FRESULT f_sync (
 				ST_DWORD(dir+DIR_FileSize, fp->fsize);		/* Update file size */
 				ST_WORD(dir+DIR_FstClusLO, fp->org_clust);	/* Update start cluster */
 				ST_WORD(dir+DIR_FstClusHI, fp->org_clust >> 16);
-//				tim = get_fattime();					/* Updated time */
-//				ST_DWORD(dir+DIR_WrtTime, tim);
+				tim = get_fattime();					/* Updated time */
+				ST_DWORD(dir+DIR_WrtTime, tim);
 				fp->flag &= (BYTE)~FA__WRITTEN;
 				fp->fs->wflag = 1;
 				res = sync(fp->fs);
@@ -2331,8 +2332,8 @@ FRESULT f_mkdir (
 	mem_set(dir+DIR_Name, ' ', 8+3);		/* Create "." entry */
 	dir[DIR_Name] = '.';
 	dir[DIR_Attr] = AM_DIR;
-//	tim = get_fattime();
-//	ST_DWORD(dir+DIR_WrtTime, tim);
+	tim = get_fattime();
+	ST_DWORD(dir+DIR_WrtTime, tim);
 	ST_WORD(dir+DIR_FstClusLO, dclst);
 	ST_WORD(dir+DIR_FstClusHI, dclst >> 16);
 	mem_cpy(dir+32, dir, 32); 			/* Create ".." entry */
@@ -2356,7 +2357,7 @@ FRESULT f_mkdir (
 	} else {
 		dir = dj.dir;
 		dir[DIR_Attr] = AM_DIR;					/* Attribute */
-//		ST_DWORD(dir+DIR_WrtTime, tim);			/* Crated time */
+		ST_DWORD(dir+DIR_WrtTime, tim);			/* Crated time */
 		ST_WORD(dir+DIR_FstClusLO, dclst);		/* Table start cluster */
 		ST_WORD(dir+DIR_FstClusHI, dclst >> 16);
 		dj.fs->wflag = 1;
@@ -2720,7 +2721,7 @@ FRESULT f_mkfs (
 	ST_WORD(tbl+BPB_SecPerTrk, 63);				/* Number of sectors per track */
 	ST_WORD(tbl+BPB_NumHeads, 255);				/* Number of heads */
 	ST_DWORD(tbl+BPB_HiddSec, b_part);			/* Hidden sectors */
-//	n = get_fattime();							/* Use current time as a VSN */
+	n = get_fattime();							/* Use current time as a VSN */
 	if (fmt != FS_FAT32) {
 		ST_DWORD(tbl+BS_VolID, n);				/* Volume serial number */
 		ST_WORD(tbl+BPB_FATSz16, n_fat);		/* Number of secters per FAT */

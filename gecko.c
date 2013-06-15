@@ -264,7 +264,9 @@ int gecko_printf(const char *fmt, ...)
 			fmt++;
 		}
 	else if(gecko_enabled == 2)
-		f_puts(fmt, &logFile);
+	{	f_puts(fmt, &logFile);
+		f_sync(&logFile);
+	}
 	return 0;
 #ifdef GECKO_SAFE
 	return gecko_sendbuffer_safe(buffer, i);

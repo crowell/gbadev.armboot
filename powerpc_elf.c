@@ -319,7 +319,11 @@ int powerpc_boot_file(const char *path)
 	dc_invalidaterange((void*)decryptionEndAddress,32);
 	ahb_flush_from(AHB_1);
 	if(oldValue2 != read32(decryptionEndAddress))
-		panic(0);
+		binaryPanic(0);
+	
+	// make sure our change actually took place (assume nothing)
+	if(oldValue == read32(0x1330100))
+		binaryPanic(0x55555555);
 	
 	// wait for decryption / validation to finish
 	do
@@ -327,28 +331,42 @@ int powerpc_boot_file(const char *path)
 		ahb_flush_from(AHB_1);
 	}while(oldValue2 == read32(decryptionEndAddress));
 
+	udelay(300000);
+	sensorbarOn();
+
 	//dump decrypted memory area
 	u32 writeLength;
 	fres = f_open(&fd, "/bootmii/dump.bin", FA_CREATE_ALWAYS);
 	if (fres != FR_OK)
 		return -fres;
+	udelay(300000);
+	sensorbarOff();
 	fres = f_write(&fd, &oldValue, 4, &writeLength);
 	if (fres != FR_OK)
-		return -fres;
+		binaryPanic(fres);
+	udelay(300000);
+	sensorbarOn();
 	fres = f_write(&fd, (void*)0x1330104, endAddress+1-0x1330104,&writeLength);
 	if (fres != FR_OK)
-		return -fres;
+		binaryPanic(fres);
+	udelay(300000);
+	sensorbarOff();
+	fres = f_sync(&fd);
+	if (fres != FR_OK)
+		binaryPanic(fres);
+	udelay(300000);
+	sensorbarOn();
 	fres = f_close(&fd);
 	if (fres != FR_OK)
-		return -fres;	
+		binaryPanic(fres);
+	udelay(300000);
+	sensorbarOff();
 
 /*	do
 	{	dc_invalidaterange((void*)0x1330118,32);
 		ahb_flush_from(AHB_1);
 	}while(0xAAAAAAAA == read32(0x1330118));
 */
-	udelay(300000);
-	sensorbarOn();
 	//udelay(300000);
 
  //this forces arm into ipc loop

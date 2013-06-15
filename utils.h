@@ -193,6 +193,7 @@ void sensorPrep();
 static inline void sensorbarOn(){set32(HW_GPIO1OUT, GP_SENSORBAR);}
 static inline void sensorbarOff(){clear32(HW_GPIO1OUT, GP_SENSORBAR);}
 void flashSensor(u32 before, u32 during, u32 after);
+void binaryPanic(u32 value);
 
 static inline u32 get_cpsr(void)
 {
