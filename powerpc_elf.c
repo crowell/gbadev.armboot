@@ -336,7 +336,7 @@ int powerpc_boot_file(const char *path)
 
 	//dump decrypted memory area
 	u32 writeLength;
-	fres = f_open(&fd, "/bootmii/dump.bin", FA_CREATE_ALWAYS);
+	fres = f_open(&fd, "/bootmii/dump.bin", FA_CREATE_ALWAYS|FA_WRITE);
 	if (fres != FR_OK)
 		return -fres;
 	udelay(300000);

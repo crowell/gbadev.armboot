@@ -224,7 +224,7 @@ void gecko_init(void)
 
 u8 gecko_enable(const u8 enable)
 {	if(gecko_enabled && !enable)
-	{	f_open(&logFile, "/bootmii/log.txt", FA_CREATE_ALWAYS);
+	{	f_open(&logFile, "/bootmii/log.txt", FA_CREATE_ALWAYS|FA_WRITE);
 		return gecko_enabled = 2;
 	}
 	return gecko_enabled = enable;

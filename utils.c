@@ -112,6 +112,6 @@ void binaryPanic(u32 value)
 				flashSensor(300000,600000,0);
 			else flashSensor(300000,300000,0);
 			shifter>>=1;
-		}while(flashSensor);
+		}while(shifter);
 	}
 }
