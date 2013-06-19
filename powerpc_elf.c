@@ -162,6 +162,7 @@ int powerpc_load_dol(const char *path, u32 *endAddress)
 
 
 //some needed init's and a jump to 0x1800 ???
+//basically, MSR[ip]=0 + sync
 void powerpc_upload_stub_100(void)
 {
 	write32(0x100, 0x38600000); //li r3,0
@@ -172,10 +173,22 @@ void powerpc_upload_stub_100(void)
  	write32(0x110, 0x480016F0);	//b 0x1800
 }
 
+void powerpc_upload_stub_Ox01330100(void)
+{
+	write32(0x01330100, 0x38600000); //li r3,0
+	write32(0x01330104, 0x7C600124);	//mtmsr r3
+	write32(0x01330108, 0x4C00012C);	//isync
+ 	write32(0x0133010C, 0x7c0004ac);	//sync
+								//eieio??
+ 	write32(0x01330110, 0x48001802);	//ba 0x1800
+}
+
+
+
 //another turn sensorbar on routine
 void powerpc_upload_stub_1800_2(void)
 {
-	write32(0x1800, 0x3c600d00);	//lis r3,3328
+	write32(0x1800, 0x3c600d80);	//lis r3,3456
 	write32(0x1804, 0x808300c0); 	//lwz r4,192(r3)
 	write32(0x1808, 0x60840100); 	//ori r4,r4,256
 	write32(0x180c, 0x908300c0);	//stw r4,192(r3)
@@ -191,7 +204,7 @@ void powerpc_upload_stub_1800(void)
 	
 	//could this turn the sensorbar off?
 	
-	write32(0x1808, 0x3c600d00); //lis r3,3328
+	write32(0x1808, 0x3c600d80); //lis r3,3456
 	write32(0x180c, 0x808300c0); //lwz r4,192(r3)
 	write32(0x1810, 0x3ca000ff); //lis r5,255
 	write32(0x1814, 0x60a5feff); //ori r5,r5,65279
@@ -210,7 +223,7 @@ void powerpc_upload_stub_1800(void)
 	
 	//notice a resemblance with previous here?
 
-	write32(0x183c, 0x3c600d00); //lis r3,3328
+	write32(0x183c, 0x3c600d80); //lis r3,3456
 	write32(0x1840, 0x808300c0); //lwz r4,192(r3)
 	write32(0x1844, 0x60840100); //ori r4,r4,256
 	write32(0x1848, 0x908300c0); //stw r4,192(r3)
@@ -231,7 +244,240 @@ void powerpc_upload_stub_1800(void)
 	write32(0x186c, 0x48000000); // makeAbsoluteBranch(0x1870, false));
 
 }
+void powerpc_upload_stub_1800_1_512(void)
+{
 
+//check_pvr_hi r4, 0x7001
+    write32(0x1800, 0x7c9f42a6); //mfpvr   r4
+    write32(0x1804, 0x5484843e); //rlwinm  r4,r4,16,16,31
+    write32(0x1808, 0x28047001); //cmplwi  r4,28673
+//bne __real_start:
+    write32(0x180c, 0x408200b4); //bne-    0x18c0  0x408200f4 original
+
+    write32(0x1810, 0x7c79faa6); //mfl2cr  r3
+    write32(0x1814, 0x5463003e); //rotlwi  r3,r3,0	rlwinm..?
+    write32(0x1818, 0x7c79fba6); //mtl2cr  r3
+    write32(0x181c, 0x7c0004ac); //sync    
+//spr_oris r3, l2cr, 0x0020		/* L2 global invalidate */
+    write32(0x1820, 0x7c79faa6); //mfl2cr  r3
+    write32(0x1824, 0x64630020); //oris    r3,r3,32
+    write32(0x1828, 0x7c79fba6); //mtl2cr  r3
+//spr_check_bit r3, l2cr, 31, 0	/* L2IP */
+//local_0:
+    write32(0x182c, 0x7c79faa6); //mfl2cr  r3
+    write32(0x1830, 0x546307fe); //clrlwi  r3,r3,31
+
+    write32(0x1834, 0x2c030000); //cmpwi   r3,0
+    write32(0x1838, 0x4082fff4); //bne+    0x182c	local_0:
+//spr_clear_bit r3, l2cr, 10		/* clear L2I */
+    write32(0x183c, 0x7c79faa6); //mfl2cr  r3
+    write32(0x1840, 0x546302d2); //rlwinm  r3,r3,0,11,9
+    write32(0x1844, 0x7c79fba6); //mtl2cr  r3
+
+//spr_check_bit r3, l2cr, 31, 0	/* clear L2I */
+//local_1:
+    write32(0x1848, 0x7c79faa6); //mfl2cr  r3
+    write32(0x184c, 0x546307fe); //clrlwi  r3,r3,31
+    write32(0x1850, 0x2c030000); //cmpwi   r3,0
+    write32(0x1854, 0x4082fff4); //bne+    0x1848	local_1:
+
+    write32(0x1858, 0x48000004); //b       0x185c	start:	0x48000008 original
+
+//original there is a 0x00000000 located here
+
+//spr_clear_bit r3, hid5, 0		/* disable HID5 */
+//start:
+    write32(0x185c, 0x7c70eaa6); //mfspr   r3,944	Ox3b0 hid5?
+    write32(0x1860, 0x5463007e); //clrlwi  r3,r3,1
+    write32(0x1864, 0x7c70eba6); //mtspr   944,r3
+
+    write32(0x1868, 0x60000000); //nop
+    write32(0x186c, 0x7c0004ac); //sync    
+    write32(0x1870, 0x60000000); //nop
+    write32(0x1874, 0x60000000); //nop
+    write32(0x1878, 0x60000000); //nop
+
+//spr_oris r3, bcr, 0x1000
+    write32(0x187c, 0x7c75eaa6); //mfspr   r3,949
+    write32(0x1880, 0x64631000); //oris    r3,r3,4096
+    write32(0x1884, 0x7c75eba6); //mtspr   949,r3
+
+    write32(0x1888, 0x388000ff); //li      r4,255
+//delay loop?
+//local_2:
+    write32(0x188c, 0x3884ffff); //addi    r4,r4,-1
+    write32(0x1890, 0x2c040000); //cmpwi   r4,0
+    write32(0x1894, 0x4082fff8); //bne+    0x188c	local_2:
+
+    write32(0x1898, 0x60000000); //nop
+
+//set_srr0_phys r3, __real_start
+    write32(0x189c, 0x3c600000); //lis     r3,0
+    write32(0x18a0, 0x606318c0); //ori     r3,r3,6336
+    write32(0x18a4, 0x5463007e); //clrlwi  r3,r3,1
+    write32(0x18a8, 0x7c7a03a6); //mtsrr0  r3
+
+    write32(0x18ac, 0x38800000); //li      r4,0
+    write32(0x18b0, 0x7c9b03a6); //mtsrr1  r4
+    write32(0x18b4, 0x4c000064); //rfi
+//.align 4
+    write32(0x18b8, 0x60000000); //nop
+    write32(0x18bc, 0x60000000); //nop
+
+// in original code this starts at 0x01330200
+// previous area is filled with 68 0x00 bytes
+
+//__real_start:
+//spr_set r4, hid0, 0x00110C64	/* DPM, NHR, ICFI, DCFI, DCFA, BTIC, and BHT */
+    write32(0x18c0, 0x3c800011); //lis     r4,17
+    write32(0x18c4, 0x60840c64); //ori     r4,r4,3172	0x0c64		   0x38840c64 original
+    write32(0x18c8, 0x7c90fba6); //mtspr   1008,r4		0x3f0 = hid0?
+//msr_set r4, 0x2000				/* FP */
+    write32(0x18cc, 0x3c800000); //lis     r4,0
+    write32(0x18d0, 0x60842000); //ori     r4,r4,8192	0x2000		   0x38842000 original
+    write32(0x18d4, 0x7c800124); //mtmsr   r4
+//spr_oris r4, hid4, 0x0200		/* enable SBE */
+    write32(0x18d8, 0x7c93faa6); //mfspr   r4,1011		 0x3f3 = hid4?
+    write32(0x18dc, 0x64840200); //oris    r4,r4,512	 0x548401ca original	
+    write32(0x18e0, 0x7c93fba6); //mtspr   1011,r4
+//spr_ori r4, hid0, 0xC000		/* ICE, DCE */
+    write32(0x18e4, 0x7c90faa6); //mfspr   r4,1008		0x3f0 = hid0?  0x7c70faa6 original
+    write32(0x18e8, 0x6084c000); //ori     r4,r4,49152				   0x6054c000 original
+    write32(0x18ec, 0x7c90fba6); //mtspr   1008,r4
+    write32(0x18f0, 0x4c00012c); //isync
+
+//.irp b,0u,0l,1u,1l,2u,2l,3u,3l,4u,4l,5u,5l,6u,6l,7u,7l
+    write32(0x18f4, 0x38800000); //li      r4,0
+    write32(0x18f8, 0x7c9883a6); //mtdbatu 0,r4			mov to .. bat0u
+    write32(0x18fc, 0x7c9983a6); //mtdbatl 0,r4			mov to .. bat0l	 not in original?
+    write32(0x1900, 0x7c9a83a6); //mtdbatu 1,r4
+    write32(0x1904, 0x7c9b83a6); //mtdbatl 1,r4			not in original?
+    write32(0x1908, 0x7c9c83a6); //mtdbatu 2,r4
+    write32(0x190c, 0x7c9d83a6); //mtdbatl 2,r4
+    write32(0x1910, 0x7c9e83a6); //mtdbatu 3,r4
+    write32(0x1914, 0x7c9f83a6); //mtdbatl 3,r4
+//mtsr sr\sr, r4
+    write32(0x1918, 0x7c988ba6); //mtspr   568,r4		move to spr 0x0238
+    write32(0x191c, 0x7c998ba6); //mtspr   569,r4		0x0239
+    write32(0x1920, 0x7c9a8ba6); //mtspr   570,r4
+    write32(0x1924, 0x7c9b8ba6); //mtspr   571,r4
+    write32(0x1928, 0x7c9c8ba6); //mtspr   572,r4
+    write32(0x192c, 0x7c9d8ba6); //mtspr   573,r4
+    write32(0x1930, 0x7c9e8ba6); //mtspr   574,r4
+    write32(0x1934, 0x7c9f8ba6); //mtspr   575,r4
+//.irp b,0u,0l,1u,1l,2u,2l,3u,3l,4u,4l,5u,5l,6u,6l,7u,7l
+    write32(0x1938, 0x7c9083a6); //mtibatu 0,r4
+    write32(0x193c, 0x7c9183a6); //mtibatl 0,r4
+    write32(0x1940, 0x7c9283a6); //mtibatu 1,r4
+    write32(0x1944, 0x7c9383a6); //mtibatl 1,r4
+    write32(0x1948, 0x7c9483a6); //mtibatu 2,r4
+    write32(0x194c, 0x7c9583a6); //mtibatl 2,r4
+    write32(0x1950, 0x7c9683a6); //mtibatu 3,r4
+    write32(0x1954, 0x7c9783a6); //mtibatl 3,r4
+//mtspr ibat\b, r4
+    write32(0x1958, 0x7c908ba6); //mtspr   560,r4
+    write32(0x195c, 0x7c918ba6); //mtspr   561,r4
+    write32(0x1960, 0x7c928ba6); //mtspr   562,r4
+    write32(0x1964, 0x7c938ba6); //mtspr   563,r4
+    write32(0x1968, 0x7c948ba6); //mtspr   564,r4
+    write32(0x196c, 0x7c958ba6); //mtspr   565,r4
+    write32(0x1970, 0x7c968ba6); //mtspr   566,r4
+    write32(0x1974, 0x7c978ba6); //mtspr   567,r4
+
+    write32(0x1978, 0x4c00012c); //isync
+
+//.irp sr,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+//			mtsr sr\sr, r4
+    write32(0x197c, 0x3c808000); //lis     r4,-32768
+    write32(0x1980, 0x60840000); //ori     r4,r4,0		original 0x38840000
+
+    write32(0x1984, 0x7c8001a4); //mtsr    0,r4			move to spr sr?
+    write32(0x1988, 0x7c8101a4); //mtsr    1,r4
+    write32(0x198c, 0x7c8201a4); //mtsr    2,r4
+    write32(0x1990, 0x7c8301a4); //mtsr    3,r4
+    write32(0x1994, 0x7c8401a4); //mtsr    4,r4
+    write32(0x1998, 0x7c8501a4); //mtsr    5,r4
+    write32(0x199c, 0x7c8601a4); //mtsr    6,r4
+    write32(0x19a0, 0x7c8701a4); //mtsr    7,r4
+    write32(0x19a4, 0x7c8801a4); //mtsr    8,r4
+    write32(0x19a8, 0x7c8901a4); //mtsr    9,r4
+    write32(0x19ac, 0x7c8a01a4); //mtsr    10,r4
+    write32(0x19b0, 0x7c8b01a4); //mtsr    11,r4
+    write32(0x19b4, 0x7c8c01a4); //mtsr    12,r4
+    write32(0x19b8, 0x7c8d01a4); //mtsr    13,r4
+    write32(0x19bc, 0x7c8e01a4); //mtsr    14,r4
+    write32(0x19c0, 0x7c8f01a4); //mtsr    15,r4
+
+//set_bats r4, bat0l, 0x00000002		/* 0x00000000-0x10000000 : RW/RW Cached   */
+    write32(0x19c4, 0x3c800000); //lis     r4,0
+    write32(0x19c8, 0x60840002); //ori     r4,r4,2		original 0x38840002
+    write32(0x19cc, 0x7c9183a6); //mtibatl 0,r4			original not there
+    write32(0x19d0, 0x7c9983a6); //mtdbatl 0,r4			original not there
+//set_bats r3, bat0u, 0x80001FFF		/* 0x80000000-0x90000000 :  1/ 1 :        */
+    write32(0x19d4, 0x3c608000); //lis     r3,-32768
+    write32(0x19d8, 0x60631fff); //ori     r3,r3,8191	original 0x38631fff
+    write32(0x19dc, 0x7c7083a6); //mtibatu 0,r3			original 0x7c9983a6
+    write32(0x19e0, 0x7c7883a6); //mtdbatu 0,r3
+
+    write32(0x19e4, 0x4c00012c); //isync
+//set_bat r4, dbat1l, 0x0000002A		/* 0x00000000-0x10000000 : RW/RW Uncached */
+    write32(0x19e8, 0x3c800000); //lis     r4,0
+    write32(0x19ec, 0x6084002a); //ori     r4,r4,42
+    write32(0x19f0, 0x7c9b83a6); //mtdbatl 1,r4
+//set_bat r3, dbat1u, 0xC0001FFF		/* 0xC0000000-0xD0000000 :  1/ 1 : I/G    */
+    write32(0x19f4, 0x3c60c000); //lis     r3,-16384
+    write32(0x19f8, 0x60631fff); //ori     r3,r3,8191
+    write32(0x19fc, 0x7c7a83a6); //mtdbatu 1,r3
+
+    write32(0x1a00, 0x4c00012c); //isync
+//set_bats r4, bat4l, 0x10000002		/* 0x10000000-0x20000000 : RW/RW Cached   */
+    write32(0x1a04, 0x3c801000); //lis     r4,4096
+    write32(0x1a08, 0x60840002); //ori     r4,r4,2
+    write32(0x1a0c, 0x7c918ba6); //mtspr   561,r4
+    write32(0x1a10, 0x7c998ba6); //mtspr   569,r4
+
+//set_bats r3, bat4u, 0x90001FFF		/* 0x90000000-0xA0000000 :  1/ 1 :        */
+    write32(0x1a14, 0x3c609000); //lis     r3,-28672
+    write32(0x1a18, 0x60631fff); //ori     r3,r3,8191
+    write32(0x1a1c, 0x7c708ba6); //mtspr   560,r3
+    write32(0x1a20, 0x7c788ba6); //mtspr   568,r3
+
+    write32(0x1a24, 0x4c00012c); //isync
+//set_bat r4, dbat5l, 0x1000002A		/* 0x10000000-0x20000000 : RW/RW Uncached */
+    write32(0x1a28, 0x3c801000); //lis     r4,4096
+    write32(0x1a2c, 0x6084002a); //ori     r4,r4,42
+    write32(0x1a30, 0x7c9b8ba6); //mtspr   571,r4
+//set_bat r3, dbat5u, 0xD0001FFF		/* 0xD0000000-0xE0000000 :  1/ 1 : I/G    */
+    write32(0x1a34, 0x3c60d000); //lis     r3,-12288
+    write32(0x1a38, 0x60631fff); //ori     r3,r3,8191
+    write32(0x1a3c, 0x7c7a8ba6); //mtspr   570,r3
+
+    write32(0x1a40, 0x4c00012c); //isync
+
+    write32(0x1a44, 0x38600000); //li      r3,0								original 0x3c600000
+    write32(0x1a48, 0x38800000); //li      r4,0
+    write32(0x1a4c, 0x908300f4); //stw     r4,244(r3)		BI2 0xf4
+
+
+//set_srr0 r3, __KernelInit
+//no instruction at 0x1a50 in megazig code so...?
+    write32(0x1a50, 0x60000000); //nop										original 0x3c608133
+    write32(0x1a54,	0x60633400); //ori     r3,r3,13312		/* 0x3400 */	original 0x60630400
+    write32(0x1a58, 0x7c7a03a6); //mtsrr0  r3
+
+//so loading entry where original loaded kernel...
+//this is from Maxternal I assume
+
+//    write32(0x1a50, 0x3c600000 | entry >> 16 ); //lis     r3,entry@h
+//    write32(0x1a54, 0x60630000 | (entry & 0xffff) ); //ori     r3,r3,entry@l
+//    write32(0x1a58, 0x7c7a03a6); //mtsrr0  r3
+
+//msr_to_srr1_ori r4, 0x30			/* enable DR|IR */
+    write32(0x1a5c, 0x7c8000a6); //mfmsr   r4
+    write32(0x1a60, 0x60840030); //ori     r4,r4,48		0x30
+    write32(0x1a64, 0x7c9b03a6); //mtsrr1  r4
+    write32(0x1a68, 0x4c000064); //rfi
+}
 
 
 int powerpc_boot_file(const char *path)
@@ -260,17 +506,26 @@ int powerpc_boot_file(const char *path)
 	//sensorbarOff();
 	//udelay(300000);
 
-	//powerpc_upload_stub_100();
-	//powerpc_upload_stub_1800_2();
+	//not really used now but handy when we start resetting cores
+	powerpc_upload_stub_100();
+	//should turn the sensor bar on, but no idea if that memory is already accessible.
+	//and maybe it's not were we exppect it to be due to mmu settings
+	//still being disabled
+	//so, we will need to analyse the 1-512 init code.
+	//to figure out what settings are needed.
+	//right now, we just check if our stubs really stay in place.
+	//learning to walk first.
+	powerpc_upload_stub_1800_2();
+	
 	//write32(0x1800, 0xAAAAAAAA);
 
 	//sensorbarOff();
 	//udelay(300000);
 	dc_flushall();
 
-	sensorbarOn();
-	udelay(300000);
-    //set32(HW_GPIO1OWNER, HW_GPIO1_SENSE);
+//	sensorbarOn();
+//	udelay(300000);
+    set32(HW_GPIO1OWNER, HW_GPIO1_SENSE);
 	//powerpc_reset();
 	gecko_printf("Resetting PPC. End debug output.\n");
 	gecko_enable(0);
@@ -279,7 +534,7 @@ int powerpc_boot_file(const char *path)
 	//this will give us some dwords to work with
 
 
-	u32 oldValue = read32(0x1330100);
+	u32 oldValue = read32(0x1330110);
    
    set32(HW_DIFLAGS,DIFLAGS_BOOT_CODE);
 
@@ -293,9 +548,9 @@ int powerpc_boot_file(const char *path)
 	do
 	{	dc_invalidaterange((void*)0x1330100,32);
 		ahb_flush_from(AHB_1);
-	}while(oldValue == read32(0x1330100));
+	}while(oldValue == read32(0x1330110));
 
-	oldValue = read32(0x1330100);
+//	oldValue = read32(0x1330110);
 	// where core 0 will end up once the ROM is done decrypting 1-200
 //	write32(0x1330100, 0x3c600000); // lis r3,0
 //	write32(0x1330104, 0x90831800); // stw r4,(0x1800)r3
@@ -310,20 +565,25 @@ int powerpc_boot_file(const char *path)
 	
 	write32(0x1330118, 0xAAAAAAAA); // flag location
 */
-	write32(0x1330100, 0x48000000); // infinite loop
+
+	powerpc_upload_stub_Ox01330100();	
+
+//	write32(0x1330100, 0x48000000); // infinite loop
 	dc_flushrange((void*)0x1330100,32);
 
-	sensorbarOff();
+//	sensorbarOff();
 
 	// make sure decryption / validation didn't finish yet
+
+/*
 	dc_invalidaterange((void*)decryptionEndAddress,32);
 	ahb_flush_from(AHB_1);
 	if(oldValue2 != read32(decryptionEndAddress))
 		binaryPanic(0);
-	
+*/	
 	// make sure our change actually took place (assume nothing)
-	if(oldValue == read32(0x1330100))
-		binaryPanic(0x55555555);
+//	if(oldValue == read32(0x1330100))
+//		binaryPanic(0x55555555);
 	
 	// wait for decryption / validation to finish
 	do
@@ -332,35 +592,81 @@ int powerpc_boot_file(const char *path)
 	}while(oldValue2 == read32(decryptionEndAddress));
 
 	udelay(300000);
-	sensorbarOn();
+//	sensorbarOn();
 
 	//dump decrypted memory area
 	u32 writeLength;
-	fres = f_open(&fd, "/bootmii/dump.bin", FA_CREATE_ALWAYS|FA_WRITE);
+	fres = f_open(&fd, "/bootmii/dump2.bin", FA_CREATE_ALWAYS|FA_WRITE);
 	if (fres != FR_OK)
-		return -fres;
-	udelay(300000);
-	sensorbarOff();
+		binaryPanic(fres);	
+		
+//  return -fres;
+//	udelay(300000);
+//	sensorbarOff();
+//
+/*
 	fres = f_write(&fd, &oldValue, 4, &writeLength);
 	if (fres != FR_OK)
 		binaryPanic(fres);
 	udelay(300000);
 	sensorbarOn();
-	fres = f_write(&fd, (void*)0x1330104, endAddress+1-0x1330104,&writeLength);
+*/
+//
+	fres = f_write(&fd, (void*)0x1330100, endAddress+1-0x1330100,&writeLength);
 	if (fres != FR_OK)
 		binaryPanic(fres);
-	udelay(300000);
-	sensorbarOff();
+//	udelay(300000);
+//	sensorbarOff();
+/*
 	fres = f_sync(&fd);
 	if (fres != FR_OK)
 		binaryPanic(fres);
 	udelay(300000);
 	sensorbarOn();
+*/
 	fres = f_close(&fd);
 	if (fres != FR_OK)
 		binaryPanic(fres);
-	udelay(300000);
-	sensorbarOff();
+
+// check 0x100 code
+
+	fres = f_open(&fd, "/bootmii/dmp100.bin", FA_CREATE_ALWAYS|FA_WRITE);
+	if (fres != FR_OK)
+		binaryPanic(fres);	
+
+	fres = f_write(&fd, (void*)0x100,(u32)(0x14) ,&writeLength);
+	if (fres != FR_OK)
+		binaryPanic(fres);
+	fres = f_close(&fd);
+	if (fres != FR_OK)
+		binaryPanic(fres);
+
+
+
+
+
+// check 0x1800 code
+
+	fres = f_open(&fd, "/bootmii/dmp1800.bin", FA_CREATE_ALWAYS|FA_WRITE);
+	if (fres != FR_OK)
+		binaryPanic(fres);	
+
+	fres = f_write(&fd, (void*)0x1800,(u32)(0x14) ,&writeLength);
+	if (fres != FR_OK)
+		binaryPanic(fres);
+	fres = f_close(&fd);
+	if (fres != FR_OK)
+		binaryPanic(fres);
+
+
+
+
+
+
+
+
+//	udelay(300000);
+//	sensorbarOff();
 
 /*	do
 	{	dc_invalidaterange((void*)0x1330118,32);
