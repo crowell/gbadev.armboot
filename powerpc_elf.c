@@ -478,7 +478,34 @@ void powerpc_upload_stub_1800_1_512(void)
     write32(0x1a64, 0x7c9b03a6); //mtsrr1  r4
     write32(0x1a68, 0x4c000064); //rfi
 }
+void powerpc_jump_stub(u32 entry)
+{
+	u32 i;
+	u32 location = 0x01330100;
+//	set32(HW_EXICTRL, EXICTRL_ENABLE_EXI);
 
+	// lis r3, entry@h
+	write32(location + 4 * 0, 0x3c600000 | entry >> 16);
+	// ori r3, r3, entry@l
+	write32(location + 4 * 1, 0x60630000 | (entry & 0xffff));
+	// mtsrr0 r3
+	write32(location + 4 * 2, 0x7c7a03a6);
+	// li r3, 0
+	write32(location + 4 * 3, 0x38600000);
+	// mtsrr1 r3
+	write32(location + 4 * 4, 0x7c7b03a6);
+	// rfi
+	write32(location + 4 * 5, 0x4c000064);
+
+	for (i = 6; i < 0x10; ++i)
+		write32(EXI_BOOT_BASE + 4 * i, 0);
+
+//	set32(HW_DIFLAGS, DIFLAGS_BOOT_CODE);
+//	set32(HW_AHBPROT, 0xFFFFFFFF);
+
+//	gecko_printf("disabling EXI now...\n");
+//	clear32(HW_EXICTRL, EXICTRL_ENABLE_EXI);
+}
 
 int powerpc_boot_file(const char *path)
 {
@@ -490,6 +517,7 @@ int powerpc_boot_file(const char *path)
 	u32 decryptionEndAddress, endAddress;
 	//powerpc_hang();
 	udelay(300000);
+/* start first flash */
 	sensorbarOn();
 	udelay(300000);
 	fres = powerpc_load_dol("/bootmii/00000003.app", &endAddress);
@@ -497,7 +525,7 @@ int powerpc_boot_file(const char *path)
 	gecko_printf("powerpc_load_dol returned %d .\n", fres);
 	sensorbarOff();
 	udelay(300000);
-
+/* end first flash */
 	//sensorbarOn();
 	//udelay(300000);
 	u32 oldValue2 = read32(decryptionEndAddress);
@@ -534,9 +562,9 @@ int powerpc_boot_file(const char *path)
 	//this will give us some dwords to work with
 
 
-	u32 oldValue = read32(0x1330110);
+	u32 oldValue = read32(0x133013C);
    
-   set32(HW_DIFLAGS,DIFLAGS_BOOT_CODE);
+//   set32(HW_DIFLAGS,DIFLAGS_BOOT_CODE);
 
 	//reboot ppc side
 	clear32(HW_RESETS, 0x30);
@@ -546,9 +574,9 @@ int powerpc_boot_file(const char *path)
 	set32(HW_RESETS, 0x10);
 
 	do
-	{	dc_invalidaterange((void*)0x1330100,32);
+	{	dc_invalidaterange((void*)0x1330100,64);
 		ahb_flush_from(AHB_1);
-	}while(oldValue == read32(0x1330110));
+	}while(oldValue == read32(0x133013C));
 
 //	oldValue = read32(0x1330110);
 	// where core 0 will end up once the ROM is done decrypting 1-200
@@ -566,10 +594,10 @@ int powerpc_boot_file(const char *path)
 	write32(0x1330118, 0xAAAAAAAA); // flag location
 */
 
-	powerpc_upload_stub_Ox01330100();	
-
+//	powerpc_upload_stub_Ox01330100();	
+	powerpc_jump_stub(0x1800);
 //	write32(0x1330100, 0x48000000); // infinite loop
-	dc_flushrange((void*)0x1330100,32);
+	dc_flushrange((void*)0x1330100,64);
 
 //	sensorbarOff();
 
