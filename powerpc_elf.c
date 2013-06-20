@@ -85,6 +85,11 @@ u32 virtualToPhysical(u32 virtualAddress)
 	return virtualAddress;
 }
 
+u32 physicalToVirtual(u32 virtualAddress) // I know it needs work
+{
+	return virtualAddress | 0xC0000000;
+}
+
 u32 makeRelativeBranch(u32 currAddr, u32 destAddr, bool linked)
 {
 	u32 ret = 0x48000000 | (( destAddr - currAddr ) & 0x3FFFFFC );
@@ -539,7 +544,6 @@ int powerpc_load_elf(char* path, u32* entry)
 	u32 read;
 	FIL fd;
 	FRESULT fres;
-	Elf32_Ehdr elfhdr;
 	fres = f_open(&fd, path, FA_READ);
 	if (fres != FR_OK)
 			return -fres;
@@ -613,7 +617,7 @@ int powerpc_load_elf(char* path, u32* entry)
 
 	dc_flushall();
 
-	gecko_printf("ELF load done, booting PPC...\n");
+	gecko_printf("ELF load done. Entry point: %08x\n", elfhdr.e_entry);
 	dc_flushrange((void*)0x160,32);
 	//gecko_printf("PPC booted!\n");
 	*entry = elfhdr.e_entry;
@@ -624,7 +628,7 @@ int powerpc_load_elf(char* path, u32* entry)
 int powerpc_boot_file(const char *path)
 {
 	FRESULT fres;
-
+	FIL fd;
 	u32 decryptionEndAddress, endAddress, entry;
 	udelay(300000);
 /* start first flash */
@@ -633,22 +637,10 @@ int powerpc_boot_file(const char *path)
 	
 	// loading the ELF file this time here just to have a look at it's debug output and memory addresses
 	gecko_printf("powerpc_load_elf returned %d .\n", powerpc_load_elf(path, &entry));
-	
+	entry = physicalToVirtual(entry);
 	fres = powerpc_load_dol("/bootmii/00000003.app", &endAddress);
 	decryptionEndAddress = endAddress & ~3; 
 	gecko_printf("powerpc_load_dol returned %d .\n", fres);
-	
-	// dumping decrypted addresses to check SHA1 to be sure we did it right
-	u32 writeLength1;
-	fres = f_open(&fd, "/bootmii/dump.bin", FA_CREATE_ALWAYS|FA_WRITE);
-	if (fres != FR_OK)
-		binaryPanic(fres);	
-	fres = f_write(&fd, (void*)0x1330100, endAddress+1-0x1330100,&writeLength1);
-	if (fres != FR_OK)
-		binaryPanic(fres);
-	fres = f_close(&fd);
-	if (fres != FR_OK)
-		binaryPanic(fres);
 
 	sensorbarOff();
 	udelay(300000);
