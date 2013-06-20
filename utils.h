@@ -188,7 +188,7 @@ void hexdump(const void *d, int len);
 int sprintf(char *str, const char *fmt, ...);
 void udelay(u32 d);
 void panic(u8 v);
-
+void systemReset();
 void sensorPrep();
 static inline void sensorbarOn(){set32(HW_GPIO1OUT, GP_SENSORBAR);}
 static inline void sensorbarOff(){clear32(HW_GPIO1OUT, GP_SENSORBAR);}

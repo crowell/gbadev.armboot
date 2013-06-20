@@ -115,3 +115,8 @@ void binaryPanic(u32 value)
 		}while(shifter);
 	}
 }
+
+void systemReset()
+{	write32(0x0D8005E0, 0xFFFFFFFE);
+	while(1);
+}

@@ -101,65 +101,7 @@ u32 makeAbsoluteBranch(u32 destAddr, bool linked)
 	return ret;
 }
 
-int powerpc_load_dol(const char *path, u32 *endAddress)
-{
-	u32 read;
-	FIL fd;
-	FRESULT fres;
-	dol_t dol_hdr;
-	gecko_printf("Loading DOL file: %s .\n", path);
-	fres = f_open(&fd, path, FA_READ);
-	if (fres != FR_OK)
-		return -fres;
-
-	fres = f_read(&fd, &dol_hdr, sizeof(dol_t), &read);
-	if (fres != FR_OK)
-		return -fres;
-
-	u32 end = 0;
-	int ii;
-
-	/* TEXT SECTIONS */
-	for (ii = 0; ii < 7; ii++)
-	{
-		if (!dol_hdr.sizeText[ii])
-			continue;
-		fres = f_lseek(&fd, dol_hdr.offsetText[ii]);
-		if (fres != FR_OK)
-			return -fres;
-		u32 phys = virtualToPhysical(dol_hdr.addressText[ii]);
-		fres = f_read(&fd, (void*)phys, dol_hdr.sizeText[ii], &read);
-		if (fres != FR_OK)
-			return -fres;
-		if (phys + dol_hdr.sizeText[ii] > end)
-			end = phys + dol_hdr.sizeText[ii];
-		gecko_printf("Text section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeText[ii], dol_hdr.offsetText[ii], phys);
-		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+(dol_hdr.sizeText[ii] - 1) & ~3),phys+(dol_hdr.sizeText[ii] - 1) & ~3);
-	}
-
-	/* DATA SECTIONS */
-	for (ii = 0; ii < 11; ii++)
-	{
-		if (!dol_hdr.sizeData[ii])
-			continue;
-		fres = f_lseek(&fd, dol_hdr.offsetData[ii]);
-		if (fres != FR_OK)
-			return -fres;
-		u32 phys = virtualToPhysical(dol_hdr.addressData[ii]);
-		fres = f_read(&fd, (void*)phys, dol_hdr.sizeData[ii], &read);
-		if (fres != FR_OK)
-			return -fres;
-		if (phys + dol_hdr.sizeData[ii] > end)
-			end = phys + dol_hdr.sizeData[ii];
-		gecko_printf("Data section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeData[ii], dol_hdr.offsetData[ii], phys);
-		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+(dol_hdr.sizeData[ii] - 1) & ~3),phys+(dol_hdr.sizeData[ii] - 1) & ~3);
-	}
-	if (endAddress)
-		*endAddress = end - 1;
-	gecko_printf("endAddress = %08x\n", *endAddress);
-	return 0;
-}
-
+///////////////////////////////// S T U B S /////////////////////////////////
 
 //some needed init's and a jump to 0x1800 ???
 //basically, MSR[ip]=0 + sync
@@ -172,6 +114,8 @@ void powerpc_upload_stub_100(void)
 								//eieio??
  	write32(0x110, 0x480016F0);	//b 0x1800
 }
+
+
 
 void powerpc_upload_stub_Ox01330100(void)
 {
@@ -195,6 +139,8 @@ void powerpc_upload_stub_1800_2(void)
 	write32(0x1810, 0x48000000);	//b 0x1810
 
 }
+
+
 //this one should flash the sensorbar
 void powerpc_upload_stub_1800(void)
 {
@@ -244,6 +190,8 @@ void powerpc_upload_stub_1800(void)
 	write32(0x186c, 0x48000000); // makeAbsoluteBranch(0x1870, false));
 
 }
+
+
 void powerpc_upload_stub_1800_1_512(void)
 {
 
@@ -478,6 +426,8 @@ void powerpc_upload_stub_1800_1_512(void)
     write32(0x1a64, 0x7c9b03a6); //mtsrr1  r4
     write32(0x1a68, 0x4c000064); //rfi
 }
+
+
 void powerpc_jump_stub(u32 entry)
 {
 	u32 i;
@@ -507,205 +457,89 @@ void powerpc_jump_stub(u32 entry)
 //	clear32(HW_EXICTRL, EXICTRL_ENABLE_EXI);
 }
 
-int powerpc_boot_file(const char *path)
+void memory_watcher_stub_1330100()
 {
-//	u32 read;
-	FIL fd;
-	FRESULT fres;
-
-	// do race attack here
-	u32 decryptionEndAddress, endAddress;
-	//powerpc_hang();
-	udelay(300000);
-/* start first flash */
-	sensorbarOn();
-	udelay(300000);
-	fres = powerpc_load_dol("/bootmii/00000003.app", &endAddress);
-	decryptionEndAddress = endAddress & ~3; 
-	gecko_printf("powerpc_load_dol returned %d .\n", fres);
-	sensorbarOff();
-	udelay(300000);
-/* end first flash */
-	//sensorbarOn();
-	//udelay(300000);
-	u32 oldValue2 = read32(decryptionEndAddress);
-	//u32 Core0JumpInstruction = makeAbsoluteBranch(0x100, false);
-	// We'll trap PPC here with an infinite loop until we're done loading other stuff
-	//sensorbarOff();
-	//udelay(300000);
-
-	//not really used now but handy when we start resetting cores
-	powerpc_upload_stub_100();
-	//should turn the sensor bar on, but no idea if that memory is already accessible.
-	//and maybe it's not were we exppect it to be due to mmu settings
-	//still being disabled
-	//so, we will need to analyse the 1-512 init code.
-	//to figure out what settings are needed.
-	//right now, we just check if our stubs really stay in place.
-	//learning to walk first.
-	powerpc_upload_stub_1800_2();
-	
-	//write32(0x1800, 0xAAAAAAAA);
-
-	//sensorbarOff();
-	//udelay(300000);
-	dc_flushall();
-
-//	sensorbarOn();
-//	udelay(300000);
-    set32(HW_GPIO1OWNER, HW_GPIO1_SENSE);
-	//powerpc_reset();
-	gecko_printf("Resetting PPC. End debug output.\n");
-	gecko_enable(0);
-	
-	
-	//this will give us some dwords to work with
-
-
-	u32 oldValue = read32(0x133013C);
-   
-//   set32(HW_DIFLAGS,DIFLAGS_BOOT_CODE);
-
-	//reboot ppc side
-	clear32(HW_RESETS, 0x30);
-	udelay(100);
-	set32(HW_RESETS, 0x20);
-	udelay(100);
-	set32(HW_RESETS, 0x10);
-
-	do
-	{	dc_invalidaterange((void*)0x1330100,64);
-		ahb_flush_from(AHB_1);
-	}while(oldValue == read32(0x133013C));
-
-//	oldValue = read32(0x1330110);
-	// where core 0 will end up once the ROM is done decrypting 1-200
 //	write32(0x1330100, 0x3c600000); // lis r3,0
 //	write32(0x1330104, 0x90831800); // stw r4,(0x1800)r3
 //	write32(0x1330108, 0x48000000); // infinite loop
 
 //	write32(0x1330100, 0x3c600133); // lis r3,0x0133
-/*	write32(0x1330100, 0x48000005); // branch 1 instruction ahead and link, loading the address of the next instruction (0x1330104) into lr
+	write32(0x1330100, 0x48000005); // branch 1 instruction ahead and link, loading the address of the next instruction (0x1330104) into lr
 	write32(0x1330104, 0x7c6802a6); // mflr r3
 	write32(0x1330108, 0x90830014); // stw r4,(0x0014)r3
  	write32(0x133010C, 0x7c0004ac); // sync
 	write32(0x1330110, 0x48000000); // infinite loop
 	
 	write32(0x1330118, 0xAAAAAAAA); // flag location
-*/
+}
 
-//	powerpc_upload_stub_Ox01330100();	
-	powerpc_jump_stub(0x1800);
-//	write32(0x1330100, 0x48000000); // infinite loop
-	dc_flushrange((void*)0x1330100,64);
+//////////////////////////////// END STUBS ////////////////////////
 
-//	sensorbarOff();
-
-	// make sure decryption / validation didn't finish yet
-
-/*
-	dc_invalidaterange((void*)decryptionEndAddress,32);
-	ahb_flush_from(AHB_1);
-	if(oldValue2 != read32(decryptionEndAddress))
-		binaryPanic(0);
-*/	
-	// make sure our change actually took place (assume nothing)
-//	if(oldValue == read32(0x1330100))
-//		binaryPanic(0x55555555);
-	
-	// wait for decryption / validation to finish
-	do
-	{	dc_invalidaterange((void*)decryptionEndAddress,32);
-		ahb_flush_from(AHB_1);
-	}while(oldValue2 == read32(decryptionEndAddress));
-
-	udelay(300000);
-//	sensorbarOn();
-
-	//dump decrypted memory area
-	u32 writeLength;
-	fres = f_open(&fd, "/bootmii/dump2.bin", FA_CREATE_ALWAYS|FA_WRITE);
+int powerpc_load_dol(const char *path, u32 *endAddress)
+{
+	u32 read;
+	FIL fd;
+	FRESULT fres;
+	dol_t dol_hdr;
+	gecko_printf("Loading DOL file: %s .\n", path);
+	fres = f_open(&fd, path, FA_READ);
 	if (fres != FR_OK)
-		binaryPanic(fres);	
-		
-//  return -fres;
-//	udelay(300000);
-//	sensorbarOff();
-//
-/*
-	fres = f_write(&fd, &oldValue, 4, &writeLength);
+		return -fres;
+
+	fres = f_read(&fd, &dol_hdr, sizeof(dol_t), &read);
 	if (fres != FR_OK)
-		binaryPanic(fres);
-	udelay(300000);
-	sensorbarOn();
-*/
-//
-	fres = f_write(&fd, (void*)0x1330100, endAddress+1-0x1330100,&writeLength);
-	if (fres != FR_OK)
-		binaryPanic(fres);
-//	udelay(300000);
-//	sensorbarOff();
-/*
-	fres = f_sync(&fd);
-	if (fres != FR_OK)
-		binaryPanic(fres);
-	udelay(300000);
-	sensorbarOn();
-*/
-	fres = f_close(&fd);
-	if (fres != FR_OK)
-		binaryPanic(fres);
+		return -fres;
 
-// check 0x100 code
+	u32 end = 0;
+	int ii;
 
-	fres = f_open(&fd, "/bootmii/dmp100.bin", FA_CREATE_ALWAYS|FA_WRITE);
-	if (fres != FR_OK)
-		binaryPanic(fres);	
+	/* TEXT SECTIONS */
+	for (ii = 0; ii < 7; ii++)
+	{
+		if (!dol_hdr.sizeText[ii])
+			continue;
+		fres = f_lseek(&fd, dol_hdr.offsetText[ii]);
+		if (fres != FR_OK)
+			return -fres;
+		u32 phys = virtualToPhysical(dol_hdr.addressText[ii]);
+		fres = f_read(&fd, (void*)phys, dol_hdr.sizeText[ii], &read);
+		if (fres != FR_OK)
+			return -fres;
+		if (phys + dol_hdr.sizeText[ii] > end)
+			end = phys + dol_hdr.sizeText[ii];
+		gecko_printf("Text section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeText[ii], dol_hdr.offsetText[ii], phys);
+		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+(dol_hdr.sizeText[ii] - 1) & ~3),phys+(dol_hdr.sizeText[ii] - 1) & ~3);
+	}
 
-	fres = f_write(&fd, (void*)0x100,(u32)(0x14) ,&writeLength);
-	if (fres != FR_OK)
-		binaryPanic(fres);
-	fres = f_close(&fd);
-	if (fres != FR_OK)
-		binaryPanic(fres);
-
-
-
-
-
-// check 0x1800 code
-
-	fres = f_open(&fd, "/bootmii/dmp1800.bin", FA_CREATE_ALWAYS|FA_WRITE);
-	if (fres != FR_OK)
-		binaryPanic(fres);	
-
-	fres = f_write(&fd, (void*)0x1800,(u32)(0x14) ,&writeLength);
-	if (fres != FR_OK)
-		binaryPanic(fres);
-	fres = f_close(&fd);
-	if (fres != FR_OK)
-		binaryPanic(fres);
-
-
-
-
-
-
-
-
-//	udelay(300000);
-//	sensorbarOff();
-
-/*	do
-	{	dc_invalidaterange((void*)0x1330118,32);
-		ahb_flush_from(AHB_1);
-	}while(0xAAAAAAAA == read32(0x1330118));
-*/
-	//udelay(300000);
-
- //this forces arm into ipc loop
+	/* DATA SECTIONS */
+	for (ii = 0; ii < 11; ii++)
+	{
+		if (!dol_hdr.sizeData[ii])
+			continue;
+		fres = f_lseek(&fd, dol_hdr.offsetData[ii]);
+		if (fres != FR_OK)
+			return -fres;
+		u32 phys = virtualToPhysical(dol_hdr.addressData[ii]);
+		fres = f_read(&fd, (void*)phys, dol_hdr.sizeData[ii], &read);
+		if (fres != FR_OK)
+			return -fres;
+		if (phys + dol_hdr.sizeData[ii] > end)
+			end = phys + dol_hdr.sizeData[ii];
+		gecko_printf("Data section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeData[ii], dol_hdr.offsetData[ii], phys);
+		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+(dol_hdr.sizeData[ii] - 1) & ~3),phys+(dol_hdr.sizeData[ii] - 1) & ~3);
+	}
+	if (endAddress)
+		*endAddress = end - 1;
+	gecko_printf("endAddress = %08x\n", *endAddress);
 	return 0;
-/*
+}
+
+int powerpc_load_elf(char* path, u32* entry)
+{
+	u32 read;
+	FIL fd;
+	FRESULT fres;
+	Elf32_Ehdr elfhdr;
 	fres = f_open(&fd, path, FA_READ);
 	if (fres != FR_OK)
 			return -fres;
@@ -777,24 +611,205 @@ int powerpc_boot_file(const char *path)
 			phdr++;
 	}
 
-	//powerpc_upload_stub(0x1800, elfhdr.e_entry);
-
 	dc_flushall();
 
 	gecko_printf("ELF load done, booting PPC...\n");
+	dc_flushrange((void*)0x160,32);
+	//gecko_printf("PPC booted!\n");
+	*entry = elfhdr.e_entry;
+	return 0;
+}
 
-	//udelay(300000);
+
+int powerpc_boot_file(const char *path)
+{
+	FRESULT fres;
+
+	u32 decryptionEndAddress, endAddress, entry;
+	udelay(300000);
+/* start first flash */
+	sensorbarOn();
+	udelay(300000);
+	
+	// loading the ELF file this time here just to have a look at it's debug output and memory addresses
+	gecko_printf("powerpc_load_elf returned %d .\n", powerpc_load_elf(path, &entry));
+	
+	fres = powerpc_load_dol("/bootmii/00000003.app", &endAddress);
+	decryptionEndAddress = endAddress & ~3; 
+	gecko_printf("powerpc_load_dol returned %d .\n", fres);
+	
+	// dumping decrypted addresses to check SHA1 to be sure we did it right
+	u32 writeLength1;
+	fres = f_open(&fd, "/bootmii/dump.bin", FA_CREATE_ALWAYS|FA_WRITE);
+	if (fres != FR_OK)
+		binaryPanic(fres);	
+	fres = f_write(&fd, (void*)0x1330100, endAddress+1-0x1330100,&writeLength1);
+	if (fres != FR_OK)
+		binaryPanic(fres);
+	fres = f_close(&fd);
+	if (fres != FR_OK)
+		binaryPanic(fres);
+
+	sensorbarOff();
+	udelay(300000);
+/* end first flash */
 	//sensorbarOn();
 	//udelay(300000);
-
-	//write32(0x16c, makeAbsoluteBranch(0x1800, false));
-	dc_flushrange((void*)0x160,32);
-	gecko_printf("PPC booted!\n");
+	u32 oldValue2 = read32(decryptionEndAddress);
 	//sensorbarOff();
+	//udelay(300000);
 
-	return 0;
+	//not really used now but handy when we start resetting cores
+	//powerpc_upload_stub_100();
+	//should turn the sensor bar on, but no idea if that memory is already accessible.
+	//and maybe it's not were we exppect it to be due to mmu settings
+	//still being disabled
+	//so, we will need to analyse the 1-512 init code.
+	//to figure out what settings are needed.
+	//right now, we just check if our stubs really stay in place.
+	//learning to walk first.
+	//powerpc_upload_stub_1800_2();
+	
+	//write32(0x1800, 0xAAAAAAAA);
+
+	//sensorbarOff();
+	//udelay(300000);
+	dc_flushall();
+	
+// start second flash
+	sensorbarOn();
+	udelay(300000);
+
+	//this is where the decrypted instructions are that load the "entry point" before RFI
+	u32 oldValue = read32(0x1330384);
+
+    //set32(HW_GPIO1OWNER, HW_GPIO1_SENSE);
+	gecko_printf("Resetting PPC. End on-screen debug output.\n");
+	gecko_enable(0);
+//   set32(HW_DIFLAGS,DIFLAGS_BOOT_CODE);
+
+	//reboot ppc side
+	clear32(HW_RESETS, 0x30);
+	udelay(100);
+	set32(HW_RESETS, 0x20);
+	udelay(100);
+	set32(HW_RESETS, 0x10);
+
+	// do race attack here
+	do
+	{	dc_invalidaterange((void*)0x1330380,32);
+		ahb_flush_from(AHB_1);
+	}while(oldValue == read32(0x1330384));
+
+//	powerpc_upload_stub_Ox01330100();	
+//	powerpc_jump_stub(0x1800);
+	write32(0x1330380, 0x3c600000 | entry >> 16 );		//lis     r3,entry@h
+	write32(0x1330384, 0x60630000 | (entry & 0xffff) );//ori     r3,r3,entry@l
+	dc_flushrange((void*)0x1330380,32);
+
+// end second flash
+	sensorbarOff();
+
+	// make sure decryption / validation didn't finish yet
+	dc_invalidaterange((void*)decryptionEndAddress,32);
+	ahb_flush_from(AHB_1);
+	if(oldValue2 != read32(decryptionEndAddress))
+		binaryPanic(0);
+	
+	// make sure our change actually took place (assume nothing)
+	//if(oldValue == read32(0x1330100))
+	//	binaryPanic(0x55555555);
+	
+	// wait for decryption / validation to finish
+	do
+	{	dc_invalidaterange((void*)decryptionEndAddress,32);
+		ahb_flush_from(AHB_1);
+	}while(oldValue2 == read32(decryptionEndAddress));
+
+	udelay(300000);
+	sensorbarOn();
+/*	light on and stay on ... until reset
+	//dump decrypted memory area
+	u32 writeLength;
+	fres = f_open(&fd, "/bootmii/dump2.bin", FA_CREATE_ALWAYS|FA_WRITE);
+	if (fres != FR_OK)
+		binaryPanic(fres);	
+		
+//  return -fres;
+//	udelay(300000);
+//	sensorbarOff();
+//
+
+//	fres = f_write(&fd, &oldValue, 4, &writeLength);
+//	if (fres != FR_OK)
+//		binaryPanic(fres);
+//	udelay(300000);
+//	sensorbarOn();
+
+//
+	fres = f_write(&fd, (void*)0x1330100, endAddress+1-0x1330100,&writeLength);
+	if (fres != FR_OK)
+		binaryPanic(fres);
+//	udelay(300000);
+//	sensorbarOff();
+
+	fres = f_close(&fd);
+	if (fres != FR_OK)
+		binaryPanic(fres);
+
+// check 0x100 code
+
+	fres = f_open(&fd, "/bootmii/dmp100.bin", FA_CREATE_ALWAYS|FA_WRITE);
+	if (fres != FR_OK)
+		binaryPanic(fres);	
+
+	fres = f_write(&fd, (void*)0x100,(u32)(0x14) ,&writeLength);
+	if (fres != FR_OK)
+		binaryPanic(fres);
+	fres = f_close(&fd);
+	if (fres != FR_OK)
+		binaryPanic(fres);
+
+
+
+
+
+// check 0x1800 code
+
+	fres = f_open(&fd, "/bootmii/dmp1800.bin", FA_CREATE_ALWAYS|FA_WRITE);
+	if (fres != FR_OK)
+		binaryPanic(fres);	
+
+	fres = f_write(&fd, (void*)0x1800,(u32)(0x14) ,&writeLength);
+	if (fres != FR_OK)
+		binaryPanic(fres);
+	fres = f_close(&fd);
+	if (fres != FR_OK)
+		binaryPanic(fres);
 */
+
+
+
+
+
+
+
+//	udelay(300000);
+//	sensorbarOff();
+
+/*	do
+	{	dc_invalidaterange((void*)0x1330118,32);
+		ahb_flush_from(AHB_1);
+	}while(0xAAAAAAAA == read32(0x1330118));
+*/
+	//udelay(300000);
+
+ //this gives it 10 seconds for ppc to do something and then resets everything.
+	udelay(10000000);
+	systemReset();
+	return 0;
 }
+
 
 int powerpc_boot_mem(const u8 *addr, u32 len)
 {
