@@ -508,7 +508,7 @@ void powerpc_upload_array (const unsigned char* which, u32 where, const int len)
 	}
 }
 
-int powerpc_load_dol(const char *path, u32 *entry)
+int powerpc_load_dol(const char *path, u32 *endAddress)
 {
 	u32 read;
 	FIL fd;
@@ -561,10 +561,10 @@ int powerpc_load_dol(const char *path, u32 *entry)
 		gecko_printf("Data section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeData[ii], dol_hdr.offsetData[ii], phys);
 		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+(dol_hdr.sizeData[ii] - 1) & ~3),phys+(dol_hdr.sizeData[ii] - 1) & ~3);
 	}
-//	if (endAddress)
-//		*endAddress = end - 1;
-//	gecko_printf("endAddress = %08x\n", *endAddress);
-	*entry = dol_hdr.entrypt;
+	if (endAddress)
+		*endAddress = end - 1;
+	gecko_printf("endAddress = %08x\n", *endAddress);
+//	*entry = dol_hdr.entrypt;
 	return 0;
 }
 
