@@ -1,6 +1,6 @@
 AR = $(PREFIX)ar
 AS = $(PREFIX)as
-CC = $(PREFIX)gcc -L/home/vwii/devkitPro/devkitARM/lib
+CC = $(PREFIX)gcc -L$DEVKITARM/lib
 CXX = $(PREFIX)g++
 LD = $(PREFIX)ld
 OBJCOPY = $(PREFIX)objcopy

@@ -15,6 +15,7 @@ LDSCRIPT = mini.ld
 LIBS = -lgcc
 
 ELFLOADER = target/elfloader.bin
+STUB2 = stubsb1/stubsb1.bin
 STUB = stub/stub.bin
 MAKEBIN = $(CURDIR)/makebin.py
 
@@ -25,16 +26,26 @@ OBJS = start.o main.o ipc.o vsprintf.o string.o gecko.o memory.o memory_asm.o \
 	utils_asm.o utils.o ff.o diskio.o sdhc.o powerpc_elf.o powerpc.o panic.o \
 	irq.o irq_asm.o exception.o exception_asm.o seeprom.o crypto.o nand.o \
 	boot2.o ldhack.o sdmmc.o stub.o	stubsb1.o
+#RAW2C = c:/devkitpro/devkitppc/bin/raw2c
+RAW2C = $(DEVKITARM)/bin/raw2c
+NSWITCH = ./../nswitch/source
 
 include common.mk
 
 
 #all: $(TARGET_BIN)
 
-all:
-	@$(MAKE) -C stub
-	@$(MAKE) -C stubsb1
+all: stub.h stubsb1.h
 	@$(MAKE) $(TARGET_BIN)
+	@$(RAW2C) $(TARGET_BIN)
+	@mv armboot.c $(NSWITCH)/
+	@mv armboot.h $(NSWITCH)/
+
+stub.h: stub/*
+	@$(MAKE) -C stub
+
+stubsb1.h: stubsb1/*
+	@$(MAKE) -C stubsb1
 
 main.o: main.c
 
@@ -45,7 +56,6 @@ $(TARGET_STRIPPED): $(TARGET)
 $(TARGET_BIN): $(TARGET_STRIPPED) $(ELFLOADER)
 	@echo  "MAKEBIN	$@"
 	@$(MAKEBIN) $(ELFLOADER) $< $@
-	@$(MAKE) -C elfloader
 
 upload: $(TARGET_BIN)
 	@$(WIIDEV)/bin/bootmii -a $<

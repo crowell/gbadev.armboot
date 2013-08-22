@@ -13,7 +13,8 @@ LD = $(PREFIX)ld
 OBJCOPY = $(PREFIX)objcopy
 RANLIB = $(PREFIX)ranlib
 STRIP = $(PREFIX)strip
-RAW2C = c:/devkitpro/devkitppc/bin/raw2c
+#RAW2C = c:/devkitpro/devkitppc/bin/raw2c
+RAW2C = $(DEVKITARM)/bin/raw2c
 COPY = cp
 
 MACHDEP = -mcpu=750 -mno-eabi -mhard-float -DTINY -DDEBUG
@@ -68,6 +69,5 @@ $(TARGET_C): $(TARGET)
 	@$(RAW2C) $<
 	@$(COPY)  $(TARGET_C) ./../$(TARGET_C)
 	@$(COPY)  $(TARGET_H) ./../$(TARGET_H)
-	rm ./../$(TARGET_O)
 clean:
 	rm -rf $(TARGET_LINKED) $(TARGET) $(OBJS) $(DEPDIR) $(TARGET_C) $(TARGET_H)

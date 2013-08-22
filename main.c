@@ -41,7 +41,7 @@ u32 _main(void *base)
 	(void)base;
 
 	gecko_init();
-	gecko_printf("mini wii-u test loading\n");
+	gecko_printf("Triinux ppcboot-er loading\n");
 
 	gecko_printf("Initializing exceptions...\n");
 	exception_initialize();
@@ -67,7 +67,7 @@ u32 _main(void *base)
 	nand_initialize();
 	gecko_printf("NAND initialized.\n");
 
-//	boot2_init();
+	boot2_init();
 
 	gecko_printf("Initializing IPC...\n");
 	ipc_initialize();
@@ -78,31 +78,37 @@ u32 _main(void *base)
 	gecko_printf("Mounting SD...\n");
 	fres = f_mount(0, &fatfs);
 
-/*	if (read32(0x0d800190) & 2) {
+	if (read32(0x0d800190) & 2) {
 		gecko_printf("GameCube compatibility mode detected...\n");
 		vector = boot2_run(1, 0x101);
 		goto shutdown;
 	}
-	not aplicable to Wii U ?
-*/
+	
 	if(fres != FR_OK) {
 		gecko_printf("Error %d while trying to mount SD\n", fres);
 		panic2(0, PANIC_MOUNT);
 	}
 
-	gecko_printf("Trying to boot:" PPC_BOOT_FILE "\n");
+	
 
-	res = powerpc_boot_file(PPC_BOOT_FILE);
+	if(read32(0x01200004) == 0x016AE570)
+  { gecko_printf("Trying to boot:%s\n", (char*)0x01200008);
+    res = powerpc_boot_file((char*)0x01200008);
+  }
+  else
+  { gecko_printf("Trying to boot:" PPC_BOOT_FILE "\n");
+    res = powerpc_boot_file(PPC_BOOT_FILE);
+  }
 	if(res < 0) {
 		gecko_printf("Failed to boot PPC: %d\n", res);
-		gecko_printf("Hopefully performing system reset\n");
-		clear32(HW_RESETS, 0x30);
-		udelay(100);
-		set32(HW_RESETS, 0x20);
-		udelay(100);
-		set32(HW_RESETS, 0x10);
-//		gecko_printf("Booting System Menu\n");
-//		vector = boot2_run(1, 2);
+		if((read32(0xd8005A0) & 0xFFFF0000) == 0xCAFE0000)
+		{	gecko_printf("Hopefully performing system reset in 10 seconds.\n");
+      if(read16(0x01200002) == 0xDEB6) udelay(10000000);
+			systemReset();
+		}else
+		{	gecko_printf("Booting System Menu\n");
+			vector = boot2_run(1, 2);
+		}
 		goto shutdown;
 	}
 
