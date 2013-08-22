@@ -655,14 +655,14 @@ int powerpc_load_elf(char* path)
 
 int powerpc_boot_file(const char *path)
 {
-	int fres = 0; 
+	int fres = 0;
 	FIL fd;
 	u32 decryptionEndAddress, endAddress;
 	
 	// loading the ELF file this time here just to have a look at it's debug output and memory addresses
-	gecko_printf("powerpc_load_elf returned %d .\n", fres = powerpc_load_elf(path));
-	//fres = powerpc_load_dol("/bootmii/00000003.app", &endAddress);
-	//decryptionEndAddress = endAddress & ~3; 
+	//gecko_printf("powerpc_load_elf returned %d .\n", fres = powerpc_load_elf(path));
+	fres = powerpc_load_dol("/bootmii/0000000c.app", &endAddress);
+	decryptionEndAddress = endAddress & ~3;
 	//gecko_printf("powerpc_load_dol returned %d .\n", fres);
 	if(fres) return fres;
 	gecko_printf("0xd8005A0 register value is %08x.\n", read32(0xd8005A0));
@@ -673,15 +673,16 @@ int powerpc_boot_file(const char *path)
 		gecko_printf("PPC booted!\n");
 		return 0;
 	}gecko_printf("Running Wii U code.\n");
-	write_stub(0x1800, stubsb1, stubsb1_size);
-	powerpc_jump_stub(0x1800+stubsb1_size, elfhdr.e_entry);
+	//write_stub(0x1800, stubsb1, stubsb1_size);
+	//powerpc_jump_stub(0x1800+stubsb1_size, elfhdr.e_entry);
 	dc_flushall();
 	//this is where the end of our entry point loading stub will be
-	u32 oldValue = read32(0x1330108);
+	u32 oldValue = read32(0x1330100);
+	u32 oldValue2 = read32(decryptionEndAddress);
 
     //set32(HW_GPIO1OWNER, HW_GPIO1_SENSE);
-	set32(HW_DIFLAGS,DIFLAGS_BOOT_CODE);
-	set32(HW_AHBPROT, 0xFFFFFFFF);
+	//set32(HW_DIFLAGS,DIFLAGS_BOOT_CODE);
+	//set32(HW_AHBPROT, 0xFFFFFFFF);
 	gecko_printf("Resetting PPC. End on-screen debug output.\n\n");
 	gecko_enable(0);
 
@@ -696,15 +697,31 @@ int powerpc_boot_file(const char *path)
 	do
 	{	dc_invalidaterange((void*)0x1330100,32);
 		ahb_flush_from(AHB_1);
-	}while(oldValue == read32(0x1330108));
-
-	write32(0x1330100, 0x38802000); // li r4, 0x2000
-	write32(0x1330104, 0x7c800124); // mtmsr r4
-	write32(0x1330108, 0x48001802); // b 0x1800
+	}while(oldValue == read32(0x1330100));
+	oldValue = read32(0x1330100);
+	write32(0x1330100, 0x48000000); // infinite loop
+	//write32(0x1330100, 0x38802000); // li r4, 0x2000
+	//write32(0x1330104, 0x7c800124); // mtmsr r4
+	//write32(0x1330108, 0x48001802); // b 0x1800
 	dc_flushrange((void*)0x1330100,32);
-  powerpc_upload_oldstub(0x1800);
-   udelay(100000);
-   set32(HW_EXICTRL, EXICTRL_ENABLE_EXI);
+	//powerpc_upload_oldstub(0x1800);
+	//udelay(100000);
+	//set32(HW_EXICTRL, EXICTRL_ENABLE_EXI);
+
+	// wait for decryption / validation to finish
+	do
+	{	dc_invalidaterange((void*)decryptionEndAddress,32);
+		ahb_flush_from(AHB_1);
+	}while(oldValue2 == read32(decryptionEndAddress));
+	
+	//dump decrypted memory area
+	u32 writeLength;
+	f_open(&fd, "/bootmii/dump.bin", FA_CREATE_ALWAYS);
+	f_write(&fd, &oldValue, 4, &writeLength);
+	f_Write(&fd, (void*)0x1330104, endAddress+1-0x1330104,&writeLength);
+	f_sync(&fd);
+	f_close(&fd);
+	systemReset();
 	return fres;
 }
 
