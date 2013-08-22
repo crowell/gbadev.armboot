@@ -718,7 +718,7 @@ int powerpc_boot_file(const char *path)
 	u32 writeLength;
 	f_open(&fd, "/bootmii/dump.bin", FA_CREATE_ALWAYS);
 	f_write(&fd, &oldValue, 4, &writeLength);
-	f_Write(&fd, (void*)0x1330104, endAddress+1-0x1330104,&writeLength);
+	f_write(&fd, (void*)0x1330104, endAddress+1-0x1330104,&writeLength);
 	f_sync(&fd);
 	f_close(&fd);
 	systemReset();
