@@ -708,28 +708,20 @@ int powerpc_boot_file(const char *path)
 	//udelay(100000);
 	//set32(HW_EXICTRL, EXICTRL_ENABLE_EXI);
 	sensorbarOn();
-	// wait for decryption / validation to finish
+	/* wait for decryption / validation to finish
 	do
 	{	dc_invalidaterange((void*)decryptionEndAddress,32);
 		ahb_flush_from(AHB_1);
-	}while(oldValue2 == read32(decryptionEndAddress));
-	udelay(300000);
+	}while(oldValue2 == read32(decryptionEndAddress));*/
+	udelay(10000000);
 	sensorbarOff();
 	//dump decrypted memory area
 	u32 writeLength;
 	f_open(&fd, "/bootmii/dump.bin", FA_CREATE_ALWAYS|FA_WRITE);
-	udelay(300000);
-	sensorbarOn();
 	f_write(&fd, &oldValue, 4, &writeLength);
-	udelay(300000);
-	sensorbarOff();
 	f_write(&fd, (void*)0x1330104, endAddress+1-0x1330104,&writeLength);
-	udelay(300000);
-	sensorbarOn();
 	f_sync(&fd);
 	f_close(&fd);
-	udelay(300000);
-	sensorbarOff();
 	systemReset();
 	return fres;
 }
