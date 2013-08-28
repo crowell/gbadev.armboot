@@ -677,8 +677,8 @@ int powerpc_boot_file(const char *path)
 	//powerpc_jump_stub(0x1800+stubsb1_size, elfhdr.e_entry);
 	dc_flushall();
 	//this is where the end of our entry point loading stub will be
-	//u32 oldValue = read32(0x1330100);
-	//u32 oldValue2 = read32(decryptionEndAddress);
+	u32 oldValue = read32(0x1330100);
+	u32 oldValue2 = read32(decryptionEndAddress);
 
     //set32(HW_GPIO1OWNER, HW_GPIO1_SENSE);
 	//set32(HW_DIFLAGS,DIFLAGS_BOOT_CODE);
@@ -694,11 +694,10 @@ int powerpc_boot_file(const char *path)
 	set32(HW_RESETS, 0x10);
 
 	// do race attack here
-	//do
-	//{	dc_invalidaterange((void*)0x1330100,32);
-	//	ahb_flush_from(AHB_1);
-	//}while(oldValue == read32(0x1330100));
-	
+	do dc_invalidaterange((void*)0x1330100,32);
+  while(oldValue == read32(0x1330100));
+	oldValue = read32(0x1330100);
+ 		write32(0x1330100, 0x48000000); // infinite loop
 	//write32(0x1330100, 0x38802000); // li r4, 0x2000
 	//write32(0x1330104, 0x7c800124); // mtmsr r4
 	//write32(0x1330108, 0x48001802); // b 0x1800
@@ -706,6 +705,21 @@ int powerpc_boot_file(const char *path)
 	//powerpc_upload_oldstub(0x1800);
 	//udelay(100000);
 	//set32(HW_EXICTRL, EXICTRL_ENABLE_EXI);
+ 		sensorbarOn();
+ 		/* wait for decryption / validation to finish
+ 		do
+ 			dc_invalidaterange((void*)decryptionEndAddress,32);
+ 		}while(oldValue2 == read32(decryptionEndAddress));*/
+ 		udelay(10000000);
+ 		sensorbarOff();
+ 		//dump decrypted memory area
+ 		u32 writeLength;
+ 		f_open(&fd, "/bootmii/dump.bin", FA_CREATE_ALWAYS|FA_WRITE);
+ 		f_write(&fd, &oldValue, 4, &writeLength);
+ 		f_write(&fd, (void*)0x1330104, endAddress+1-0x1330104,&writeLength);
+ 		f_sync(&fd);
+ 		f_close(&fd);
+ 		systemReset();
 	return fres;
 }
 
