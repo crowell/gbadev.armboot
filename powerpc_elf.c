@@ -22,12 +22,6 @@ Copyright (C) 2009                      Andre Heider "dhewg" <dhewg@wiibrew.org>
 #include "string.h"
 #include "stubsb1.h"
 
-//obcd
-//missing
-typedef signed int bool;
-#define false 0
-#define true 1
-
 extern u8 __mem2_area_start[];
 
 #define PPC_MEM1_END    (0x017fffff)
@@ -114,9 +108,10 @@ const u32 stub_100[] =
 	/*0x108*/, 0x4C00012C	//isync
  	/*0x10c*/, 0x7c0004ac	//sync
 							//eieio??
- 	/*0x110*/, 0x48001802	//b 0x1800
+ 	/*0x110*/, 0x48001802  //b 0x1800
 };
 const u32 stub_100_size = 5;
+
 
 
 //another turn sensorbar on routine
@@ -472,25 +467,10 @@ const u32 memory_watcher_stub[] =
 
 //////////////////////////////// END STUBS ////////////////////////
 
-void write_stub(u32 address, u32 stub[], u32 size)
+void write_stub(u32 address, const u32 stub[], u32 size)
 {	u32 i;
 	for(i = 0; i < size; i++)
 		write32(address + 4 * i, stub[i]);
-}
-
-void powerpc_upload_array (const unsigned char* which, u32 where, const int len)
-{
-	const unsigned char* source;
-	u32 pos=0;
-	u32 opcode;
-
-	source = which;
-	while (pos < (u32)(len))
-	{
-		opcode = ((*(source+pos))<<24) + ((*(source+pos+1))<<16) + ((*(source+pos+2))<<8) + *(source+pos+3);
-		write32(where + pos,opcode);
-		pos+=4;
-	}
 }
 
 int powerpc_load_dol(const char *path, u32 *entry)
@@ -526,7 +506,7 @@ int powerpc_load_dol(const char *path, u32 *entry)
 		if (phys + dol_hdr.sizeText[ii] > end)
 			end = phys + dol_hdr.sizeText[ii];
 		gecko_printf("Text section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeText[ii], dol_hdr.offsetText[ii], phys);
-		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+(dol_hdr.sizeText[ii] - 1) & ~3),(phys+(dol_hdr.sizeText[ii] - 1)) & ~3);
+		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32((phys+(dol_hdr.sizeText[ii] - 1)) & ~3),(phys+(dol_hdr.sizeText[ii] - 1)) & ~3);
 	}
 
 	/* DATA SECTIONS */
@@ -544,13 +524,13 @@ int powerpc_load_dol(const char *path, u32 *entry)
 		if (phys + dol_hdr.sizeData[ii] > end)
 			end = phys + dol_hdr.sizeData[ii];
 		gecko_printf("Data section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeData[ii], dol_hdr.offsetData[ii], phys);
-		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+(dol_hdr.sizeData[ii] - 1) & ~3),(phys+(dol_hdr.sizeData[ii] - 1)) & ~3);
+		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32((phys+(dol_hdr.sizeData[ii] - 1)) & ~3),(phys+(dol_hdr.sizeData[ii] - 1)) & ~3);
 	}
   *entry = dol_hdr.entrypt;
 	return 0;
 }
 
-int powerpc_load_elf(char* path)
+int powerpc_load_elf(const char* path)
 {
 	u32 read;
 	FIL fd;
@@ -637,34 +617,33 @@ int powerpc_load_elf(char* path)
 
 int powerpc_boot_file(const char *path)
 {
-	int fres = 0;
-	FIL fd;
-	u32 decryptionEndAddress, entry;
+	int fres = 0; 
+	//FIL fd;
+	//u32 decryptionEndAddress, entry;
 	
-	// loading the ELF file this time here just to have a look at it's debug output and memory addresses
-	//gecko_printf("powerpc_load_elf returned %d .\n", fres = powerpc_load_elf(path));
-	fres = powerpc_load_dol("/bootmii/00000017.app", &entry);
-	gecko_printf("powerpc_load_dol returned %d .\n", fres);
+	gecko_printf("powerpc_load_elf returned %d .\n", fres = powerpc_load_elf(path));
+	//fres = powerpc_load_dol("/bootmii/00000003.app", &entry);
+	//decryptionEndAddress = ( 0x1330100 + read32(0x133008c + read32(0x1330008)) -1 ) & ~3; 
+	//gecko_printf("powerpc_load_dol returned %d .\n", fres);
 	if(fres) return fres;
-	decryptionEndAddress = ( 0x1330100 + read32(0x133008c + read32(0x1330008) ) -1 ) & ~3;
 	gecko_printf("0xd8005A0 register value is %08x.\n", read32(0xd8005A0));
 	if((read32(0xd8005A0) & 0xFFFF0000) != 0xCAFE0000)
-	{	gecko_printf("Not a Wii U. Aborting\n");
-		//powerpc_upload_oldstub(elfhdr.e_entry);
-		//powerpc_reset();
-		//gecko_printf("PPC booted!\n");
-		return -1;
+	{	gecko_printf("Running old Wii code.\n");
+		powerpc_upload_oldstub(elfhdr.e_entry);
+		powerpc_reset();
+		gecko_printf("PPC booted!\n");
+		return 0;
 	}gecko_printf("Running Wii U code.\n");
-	//write_stub(0x1800, stubsb1, stubsb1_size);
-	//powerpc_jump_stub(0x1800+stubsb1_size, elfhdr.e_entry);
+	powerpc_upload_oldstub(0x1800);
+ 	write_stub(0x1800, (u32*)stubsb1, stubsb1_size/4);
+	powerpc_jump_stub(0x1800+stubsb1_size, elfhdr.e_entry);
 	dc_flushall();
 	//this is where the end of our entry point loading stub will be
-	u32 oldValue = read32(0x1330100);
-	u32 oldValue2 = read32(decryptionEndAddress);
+	u32 oldValue = read32(0x1330108);
 
     //set32(HW_GPIO1OWNER, HW_GPIO1_SENSE);
-	//set32(HW_DIFLAGS,DIFLAGS_BOOT_CODE);
-	//set32(HW_AHBPROT, 0xFFFFFFFF);
+	set32(HW_DIFLAGS,DIFLAGS_BOOT_CODE);
+	set32(HW_AHBPROT, 0xFFFFFFFF);
 	gecko_printf("Resetting PPC. End on-screen debug output.\n\n");
 	gecko_enable(0);
 
@@ -676,32 +655,19 @@ int powerpc_boot_file(const char *path)
 	set32(HW_RESETS, 0x10);
 
 	// do race attack here
-	do dc_invalidaterange((void*)0x1330100,32);
-  while(oldValue == read32(0x1330100));
-	oldValue = read32(0x1330100);
- 		write32(0x1330100, 0x48000000); // infinite loop
-	//write32(0x1330100, 0x38802000); // li r4, 0x2000
-	//write32(0x1330104, 0x7c800124); // mtmsr r4
-	//write32(0x1330108, 0x48001802); // b 0x1800
+	do
+	{	dc_invalidaterange((void*)0x1330100,32);
+		//ahb_flush_from(AHB_1);
+	}while(oldValue == read32(0x1330108));
+
+	write32(0x1330100, 0x38802000); // li r4, 0x2000
+	write32(0x1330104, 0x7c800124); // mtmsr r4
+	write32(0x1330108, 0x48001802); // b 0x1800
 	dc_flushrange((void*)0x1330100,32);
-	//powerpc_upload_oldstub(0x1800);
-	//udelay(100000);
-	//set32(HW_EXICTRL, EXICTRL_ENABLE_EXI);
- 		sensorbarOn();
- 		// wait for decryption / validation to finish
- 		do
- 			dc_invalidaterange((void*)decryptionEndAddress,32);
- 		while(oldValue2 == read32(decryptionEndAddress));
- 		sensorbarOff();
- 		//dump decrypted memory area
- 		u32 writeLength;
- 		f_open(&fd, "/bootmii/dump.bin", FA_CREATE_ALWAYS|FA_WRITE);
- 		f_write(&fd, &oldValue, 4, &writeLength);
- 		f_write(&fd, (void*)0x1330104, decryptionEndAddress-0x1330100, &writeLength);
- 		f_sync(&fd);
- 		f_close(&fd);
- 		systemReset();
+	udelay(100000);
+	set32(HW_EXICTRL, EXICTRL_ENABLE_EXI);
 	return fres;
+
 }
 
 
