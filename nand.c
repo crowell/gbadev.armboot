@@ -367,17 +367,17 @@ int dump_NAND_to(char* fileName)
 	FIL fd;
 	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
-	gecko_printf("\nNAND dump process started. Do NOT remove the %s.\n\n - Reading page:\n", (isSD ? "SD card" : "USB device"));
+	gecko_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - Reading page:\n");
 	for (page = 0; page < NAND_MAX_PAGE; page++)
 	{
 		gecko_printf("\r%d / %d.\x1b[K", page+1, NAND_MAX_PAGE);
 		
-		ret = nand_read_page(page, ipc_data, ipc_ecc);
-		if (ret < 0)
+		nand_read_page(page, ipc_data, ipc_ecc);
+		/*if (ret < 0)
 		{
 			gecko_printf("\n\n\t- Error: nand_read_page(0x%x) returned %d.\n", page, ret);
 			break;
-		}
+		}*/
 		
 		nand_wait();
 		
