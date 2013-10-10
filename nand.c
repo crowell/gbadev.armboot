@@ -360,3 +360,40 @@ void nand_ipc(volatile ipc_request *req)
 	}
 }
 
+int dump_NAND_to(char* fileName)
+{
+	int writeLength, ret, page, fres = 0;
+	FIL fd;
+	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
+	if(fres) return fres;
+	gecko_printf("\nNAND dump process started. Do NOT remove the %s.\n\n - Reading page:\n", (isSD ? "SD card" : "USB device"));
+	for (page = 0; page < NAND_MAX_PAGE; page++)
+	{
+		gecko_printf("\r%d / %d.\x1b[K", page+1, NAND_MAX_PAGE);
+		
+		ret = nand_read_page(page, ipc_data, ipc_ecc);
+		if (ret < 0)
+		{
+			gecko_printf("\n\n\t- Error: nand_read_page(0x%x) returned %d.\n", page, ret);
+			break;
+		}
+		
+		nand_wait();
+		
+		ret = nand_correct(ipc_data, ipc_ecc);
+		if (ret < 0)
+			gecko_printf("\r - bad NAND page found: 0x%x.\n", page);
+		
+		//nand_correct(ipc_data, ipc_ecc);
+		
+		/* Save the normal 2048 bytes from the current page */
+		fres = f_write(&fd, &ipc_data, PAGE_SIZE, &writeLength);
+		if(fres) return fres;
+		
+		/* Save the additional 64 bytes with spare / ECC data */
+		fres = f_write(&fd, &ipc_ecc, PAGE_SPARE_SIZE, &writeLength);
+		if(fres) return fres;
+	}
+	f_close(&fd);
+	return fres;
+}

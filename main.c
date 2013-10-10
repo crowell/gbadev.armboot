@@ -29,7 +29,7 @@ Copyright (C) 2009		John Kelley <wiidev@kelley.ca>
 #include "nand.h"
 #include "boot2.h"
 
-#define PPC_BOOT_FILE "/bootmii/ppcboot.elf"
+#define NAND_DUMP_FILE "/bootmii/nand.bin"
 
 FATFS fatfs;
 
@@ -48,11 +48,11 @@ u32 _main(void *base)
 	gecko_printf("Configuring caches and MMU...\n");
 	mem_initialize();
 
-	gecko_printf("IOSflags: %08x %08x %08x\n",
+/*	gecko_printf("IOSflags: %08x %08x %08x\n",
 		read32(0xffffff00), read32(0xffffff04), read32(0xffffff08));
 	gecko_printf("          %08x %08x %08x\n",
 		read32(0xffffff0c), read32(0xffffff10), read32(0xffffff14));
-
+*/
 	irq_initialize();
 //	irq_enable(IRQ_GPIO1B);
 	irq_enable(IRQ_GPIO1);
@@ -92,25 +92,16 @@ u32 _main(void *base)
 	
 
 	if(read32(0x01200004) == 0x016AE570)
-	{	gecko_printf("Trying to boot:%s\n", (char*)0x01200008);
-		res = powerpc_boot_file((char*)0x01200008);
+	{	gecko_printf("Dumping to : %s\n", (char*)0x01200008);
+		res = dump_NAND_to((char*)0x01200008);
 	}
 	else
-	{	gecko_printf("Trying to boot:" PPC_BOOT_FILE "\n");
-		res = powerpc_boot_file(PPC_BOOT_FILE);
+	{	gecko_printf("Dumping to : " PPC_BOOT_FILE "\n");
+		res = dump_NAND_to(NAND_DUMP_FILE);
 	}
-	if(res < 0) {
-		gecko_printf("Failed to boot PPC: %d\n", res);
-		if((read32(0xd8005A0) & 0xFFFF0000) == 0xCAFE0000)
-		{	gecko_printf("Hopefully performing system reset in 10 seconds.\n");
-			if(read16(0x01200002) == 0xDEB6) udelay(10000000);
-				systemReset();
-		}else
-		{	gecko_printf("Booting System Menu\n");
-			vector = boot2_run(1, 2);
-		}
-		goto shutdown;
-	}
+	gecko_printf("Booting System Menu\n");
+	vector = boot2_run(1, 2);
+	goto shutdown;
 
 	gecko_printf("Going into IPC mainloop...\n");
 	vector = ipc_process_slow();
