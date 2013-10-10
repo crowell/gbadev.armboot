@@ -96,7 +96,7 @@ u32 _main(void *base)
 		res = dump_NAND_to((char*)0x01200008);
 	}
 	else
-	{	gecko_printf("Dumping to : %s\n", PPC_BOOT_FILE);
+	{	gecko_printf("Dumping to : " NAND_DUMP_FILE "\n");
 		res = dump_NAND_to(NAND_DUMP_FILE);
 	}
 	gecko_printf("Booting System Menu\n");
