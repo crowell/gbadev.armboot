@@ -842,16 +842,18 @@ FRESULT dir_find (
 /* Read an object from the directory                                     */
 /*-----------------------------------------------------------------------*/
 #if (_FS_MINIMIZE <= 2) && !_FS_READONLY
-static
+//static
 FRESULT dir_read (
 	DIR *dj			/* Pointer to the directory object to store read object name */
 )
 {
 	FRESULT res;
-	BYTE a, c, ord, sum, *dir;
-
-
-	ord = sum = 0xFF;
+	#if _USE_LFN
+ 	BYTE a, c, ord, sum, *dir;
+ 	ord = sum = 0xFF;
+	#else
+	BYTE a, c, *dir;
+	#endif
 	res = FR_NO_FILE;
 	while (dj->sect) {
 		res = move_window(dj->fs, dj->sect);
