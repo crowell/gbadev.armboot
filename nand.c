@@ -21,6 +21,7 @@ Copyright (C) 2008, 2009	Hector Martin "marcan" <marcan@marcansoft.com>
 #include "ipc.h"
 #include "gecko.h"
 #include "types.h"
+#include "ff.h"
 
 // #define	NAND_DEBUG	1
 #define NAND_SUPPORT_WRITE 1
@@ -380,7 +381,7 @@ int dump_NAND_to(char* fileName)
 		
 		nand_wait();
 		
-		ret = nand_correct(ipc_data, ipc_ecc);
+		ret = nand_correct(page, ipc_data, ipc_ecc);
 		if (ret < 0)
 			gecko_printf("\r - bad NAND page found: 0x%x.\n", page);
 		
