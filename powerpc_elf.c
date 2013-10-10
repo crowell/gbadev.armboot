@@ -130,7 +130,7 @@ int powerpc_load_dol(const char *path, u32 *entry)
 		if (phys + dol_hdr.sizeText[ii] > end)
 			end = phys + dol_hdr.sizeText[ii];
 		gecko_printf("Text section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeText[ii], dol_hdr.offsetText[ii], phys);
-		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+(dol_hdr.sizeText[ii] - 1) & ~3),(phys+(dol_hdr.sizeText[ii] - 1)) & ~3);
+		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+((dol_hdr.sizeText[ii] - 1)) & ~3),(phys+(dol_hdr.sizeText[ii] - 1)) & ~3);
 	}
 
 	/* DATA SECTIONS */
@@ -148,13 +148,13 @@ int powerpc_load_dol(const char *path, u32 *entry)
 		if (phys + dol_hdr.sizeData[ii] > end)
 			end = phys + dol_hdr.sizeData[ii];
 		gecko_printf("Data section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeData[ii], dol_hdr.offsetData[ii], phys);
-		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+(dol_hdr.sizeData[ii] - 1) & ~3),(phys+(dol_hdr.sizeData[ii] - 1)) & ~3);
+		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32((phys+(dol_hdr.sizeData[ii] - 1)) & ~3),(phys+(dol_hdr.sizeData[ii] - 1)) & ~3);
 	}
   *entry = dol_hdr.entrypt;
 	return 0;
 }
 
-int powerpc_load_elf(char* path)
+int powerpc_load_elf(const char* path)
 {
 	u32 read;
 	FIL fd;
@@ -245,7 +245,7 @@ int powerpc_boot_file(const char *path)
 	FIL fd;
 	u32 decryptionEndAddress, entry;
 	
-	fres = powerpc_load_dol("/bootmii/00000017.app", &entry);
+	fres = powerpc_load_dol(path, &entry);
 	gecko_printf("powerpc_load_dol returned %d .\n", fres);
 	if(fres) return fres;
 	decryptionEndAddress = ( 0x1330100 + read32(0x133008c + read32(0x1330008) ) -1 ) & ~3;
