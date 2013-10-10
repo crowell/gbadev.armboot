@@ -130,7 +130,7 @@ int powerpc_load_dol(const char *path, u32 *entry)
 		if (phys + dol_hdr.sizeText[ii] > end)
 			end = phys + dol_hdr.sizeText[ii];
 		gecko_printf("Text section of size %08x loaded from offset %08x to memory %08x.\n", dol_hdr.sizeText[ii], dol_hdr.offsetText[ii], phys);
-		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32(phys+((dol_hdr.sizeText[ii] - 1)) & ~3),(phys+(dol_hdr.sizeText[ii] - 1)) & ~3);
+		gecko_printf("Memory area starts with %08x and ends with %08x (at address %08x)\n", read32(phys), read32((phys+(dol_hdr.sizeText[ii] - 1)) & ~3),(phys+(dol_hdr.sizeText[ii] - 1)) & ~3);
 	}
 
 	/* DATA SECTIONS */

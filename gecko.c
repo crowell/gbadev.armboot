@@ -29,7 +29,6 @@ Copyright (C) 2009		Andre Heider "dhewg" <dhewg@wiibrew.org>
 static u8 gecko_found = 0;
 static u8 gecko_enabled = 0;
 static u8 gecko_console_enabled = 0;
-static FIL logFile;
 
 static u32 _gecko_command(u32 command)
 {
