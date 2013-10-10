@@ -17,6 +17,8 @@ Copyright (C) 2008, 2009	Haxx Enterprises <bushing@gmail.com>
 #define MEM2_BSS
 #endif
 
+#define NOT_USED(x) (void)(x)
+
 static u8 buffer[512] MEM2_BSS ALIGNED(32);
 
 // Initialize a Drive
@@ -54,7 +56,7 @@ DRESULT disk_read (BYTE drv, BYTE *buff, DWORD sector, BYTE count) {
 #if _READONLY == 0
 DRESULT disk_write (BYTE drv, const BYTE *buff, DWORD sector, BYTE count) {
 	int i;
-
+	NOT_USED(drv);
 	for (i = 0; i < count; i++) {
 		memcpy(buffer, buff + i * 512, 512);
 
@@ -68,6 +70,8 @@ DRESULT disk_write (BYTE drv, const BYTE *buff, DWORD sector, BYTE count) {
 
 #if _USE_IOCTL == 1
 DRESULT disk_ioctl (BYTE drv, BYTE ctrl, void *buff) {
+	NOT_USED(drv);
+	NOT_USED(buff);
 	if (ctrl == CTRL_SYNC)
 		return RES_OK;
 

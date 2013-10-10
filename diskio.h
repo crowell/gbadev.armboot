@@ -15,7 +15,8 @@
 /----------------------------------------------------------------------------*/
 // original source: http://elm-chan.org/fsw/ff/00index_e.html
 
-#ifndef _DISKIO
+#ifndef _DISKIO__
+#define _DISKIO__
 
 #define _READONLY	0	/* 1: Read-only mode */
 #define _USE_IOCTL	1

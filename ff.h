@@ -22,8 +22,8 @@
 / the configuration options.
 /
 /----------------------------------------------------------------------------*/
-#ifndef _FATFS
-#define _FATFS
+#ifndef __FATFS__
+#define __FATFS__
 
 #define _WORD_ACCESS	0
 /* The _WORD_ACCESS option defines which access method is used to the word

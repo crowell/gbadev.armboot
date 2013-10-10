@@ -12,6 +12,9 @@ Copyright (C) 2008, 2009	Haxx Enterprises <bushing@gmail.com>
 #ifndef __EXCEPTION_H__
 #define __EXCEPTION_H__
 
+extern const char *exceptions[];
+extern const char *aborts[];
+
 void exception_initialize(void);
 
 #endif
