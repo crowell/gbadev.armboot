@@ -364,8 +364,8 @@ void nand_ipc(volatile ipc_request *req)
 int dump_NAND_to(char* fileName)
 {
 	u32 writeLength;
-	int ret, page, fres = 0;
-	FIL fd;
+	int ret, fres = 0;
+	FIL fd, page, temp;
 	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
 	gecko_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - Reading page:\n");
@@ -395,6 +395,30 @@ int dump_NAND_to(char* fileName)
 		/* Save the additional 64 bytes with spare / ECC data */
 		fres = f_write(&fd, &ipc_ecc, PAGE_SPARE_SIZE, &writeLength);
 		if(fres) return fres;
+	}temp = 0
+	for(page = 0; page < 0x40; page++)
+	{	fres = f_write(&fd, &temp, 4, &writeLength);
+		if(fres) return fres;		
+//write human readable 256
+	}
+	for(page = 0; page <= 0x1F; page++)
+	{	write32(HW_OTPCMD, page | 0x80000000);
+		temp = read32(HW_OTPDATA);
+		fres = f_write(&fd, &temp, 4, &writeLength);
+		if(fres) return fres;		
+	}temp = 0;
+	for(page = 0; page <= 0x1F; page++)
+	{	fres = f_write(&fd, &temp, 4, &writeLength);
+		if(fres) return fres;		
+	}
+	for(page = 0; page < 0x40; page++)
+	{	fres = f_write(&fd, &temp, 4, &writeLength);
+		if(fres) return fres;		
+//write 256 SEEPROM here
+	}
+	for(page = 0; page < 0x40; page++)
+	{	fres = f_write(&fd, &temp, 4, &writeLength);
+		if(fres) return fres;		
 	}
 	f_close(&fd);
 	return fres;
