@@ -50,6 +50,10 @@ void	sdhc_irq(void);
 #ifdef CAN_HAZ_IPC
 void	sdhc_ipc(volatile ipc_request *req);
 #endif
+#ifndef LOADER
+int sdmmc_write(u32 blk_start, u32 blk_count, void *data);
+int sdmmc_get_sectors(void);
+#endif
 
 /* Host standard register set */
 #define SDHC_DMA_ADDR			0x00
