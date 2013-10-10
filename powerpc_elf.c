@@ -22,12 +22,6 @@ Copyright (C) 2009                      Andre Heider "dhewg" <dhewg@wiibrew.org>
 #include "string.h"
 #include "stubsb1.h"
 
-//obcd
-//missing
-typedef signed int bool;
-#define false 0
-#define true 1
-
 extern u8 __mem2_area_start[];
 
 #define PPC_MEM1_END    (0x017fffff)
