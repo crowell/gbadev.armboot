@@ -165,6 +165,10 @@ int sdmmc_read(u32 blk_start, u32 blk_count, void *data);
 #ifdef CAN_HAZ_IPC
 void sdmmc_ipc(volatile ipc_request *req);
 #endif
+#ifndef LOADER
+int sdmmc_write(u32 blk_start, u32 blk_count, void *data);
+int sdmmc_get_sectors(void);
+#endif
 
 /* MMC commands */				/* response type */
 #define MMC_GO_IDLE_STATE		0	/* R0 */

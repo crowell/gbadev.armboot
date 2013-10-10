@@ -363,7 +363,8 @@ void nand_ipc(volatile ipc_request *req)
 
 int dump_NAND_to(char* fileName)
 {
-	int writeLength, ret, page, fres = 0;
+	u32 writeLength
+	int ret, page, fres = 0;
 	FIL fd;
 	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
