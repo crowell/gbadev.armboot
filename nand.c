@@ -397,7 +397,7 @@ int dump_NAND_to(char* fileName)
 		/* Save the additional 64 bytes with spare / ECC data */
 		fres = f_write(&fd, ipc_ecc, PAGE_SPARE_SIZE, &writeLength);
 		if(fres) return fres;
-	}temp = 0
+	}temp = 0;
 	fres = f_puts(humanReadable, &fd);
 	if(fres) return fres;
 	for(page = sizeof(humanReadable); page < 0x40; page++)
@@ -417,7 +417,6 @@ int dump_NAND_to(char* fileName)
 	seeprom_read(ipc_data, 0, sizeof(seeprom_t) / 2);
 	fres = f_write(&fd, ipc_data, sizeof(seeprom_t), &writeLength);
 	if(fres) return fres;
-	}
 	for(page = 0; page < 0x40; page++)
 	{	fres = f_write(&fd, &temp, 4, &writeLength);
 		if(fres) return fres;
