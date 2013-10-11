@@ -22,7 +22,7 @@ Copyright (C) 2008, 2009	Hector Martin "marcan" <marcan@marcansoft.com>
 #include "gecko.h"
 #include "types.h"
 #include "ff.h"
-#include "eeprom.h"
+#include "seeprom.h"
 
 // #define	NAND_DEBUG	1
 #define NAND_SUPPORT_WRITE 1
