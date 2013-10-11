@@ -364,9 +364,9 @@ void nand_ipc(volatile ipc_request *req)
 
 int dump_NAND_to(char* fileName)
 {	const char* humanReadable = "BackupMii v1\nConsole ID: ####xxxx";
-	u32 writeLength;
+	u32 writeLength, page, temp;
 	int ret, fres = 0;
-	FIL fd, page, temp;
+	FIL fd;
 	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
 	screen_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - Reading block:\n     / %d.", NAND_MAX_PAGE/64 + 1);
