@@ -26,6 +26,7 @@ u8 gecko_enable(const u8 enable);
 #define gecko_printf(...) do { } while(0)
 #else
 int gecko_printf(const char *fmt, ...) __attribute__((format (printf, 1, 2)));
+int screen_printf(const char *fmt, ...) __attribute__((format (printf, 1, 2)));
 #endif
 
 void gecko_process(void);

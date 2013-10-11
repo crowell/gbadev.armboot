@@ -363,21 +363,22 @@ void nand_ipc(volatile ipc_request *req)
 }
 
 int dump_NAND_to(char* fileName)
-{
+{	const char* humanReadable = "BackupMii v1\nConsole ID: ####xxxx";
 	u32 writeLength;
 	int ret, fres = 0;
 	FIL fd, page, temp;
 	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
-	gecko_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - Reading page:\n");
+	screen_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - Reading block:\n     / %d.", NAND_MAX_PAGE/64 + 1);
 	for (page = 0; page < NAND_MAX_PAGE; page++)
 	{
-		gecko_printf("\r%d / %d.\x1b[K", page+1, NAND_MAX_PAGE);
+		if(!page%64)
+			screen_printf("\r%d", page/64 + 1);
 		
 		nand_read_page(page, ipc_data, ipc_ecc);
 		/*if (ret < 0)
 		{
-			gecko_printf("\n\n\t- Error: nand_read_page(0x%x) returned %d.\n", page, ret);
+			screen_printf("\n\n\t- Error: nand_read_page(0x%x) returned %d.\n", page, ret);
 			break;
 		}*/
 		
@@ -385,7 +386,7 @@ int dump_NAND_to(char* fileName)
 		
 		ret = nand_correct(page, ipc_data, ipc_ecc);
 		if (ret < 0)
-			gecko_printf("\r - bad NAND page found: 0x%x.\n", page);
+			screen_printf("\r - bad NAND page found: 0x%x.\n     / %d.", page, NAND_MAX_PAGE/64 + 1);
 		
 		//nand_correct(ipc_data, ipc_ecc);
 		
@@ -397,28 +398,29 @@ int dump_NAND_to(char* fileName)
 		fres = f_write(&fd, ipc_ecc, PAGE_SPARE_SIZE, &writeLength);
 		if(fres) return fres;
 	}temp = 0
-	for(page = 0; page < 0x40; page++)
+	fres = f_puts(humanReadable, &fd);
+	if(fres) return fres;
+	for(page = sizeof(humanReadable); page < 0x40; page++)
 	{	fres = f_write(&fd, &temp, 4, &writeLength);
-		if(fres) return fres;		
-//write human readable 256
+		if(fres) return fres;
 	}
 	for(page = 0; page <= 0x1F; page++)
 	{	write32(HW_OTPCMD, page | 0x80000000);
 		temp = read32(HW_OTPDATA);
 		fres = f_write(&fd, &temp, 4, &writeLength);
-		if(fres) return fres;		
+		if(fres) return fres;
 	}temp = 0;
 	for(page = 0; page <= 0x1F; page++)
 	{	fres = f_write(&fd, &temp, 4, &writeLength);
-		if(fres) return fres;		
+		if(fres) return fres;
 	}
 	seeprom_read(ipc_data, 0, sizeof(seeprom_t) / 2);
 	fres = f_write(&fd, ipc_data, sizeof(seeprom_t), &writeLength);
-	if(fres) return fres;		
+	if(fres) return fres;
 	}
 	for(page = 0; page < 0x40; page++)
 	{	fres = f_write(&fd, &temp, 4, &writeLength);
-		if(fres) return fres;		
+		if(fres) return fres;
 	}
 	f_close(&fd);
 	return fres;
