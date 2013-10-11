@@ -22,6 +22,7 @@ Copyright (C) 2008, 2009	Hector Martin "marcan" <marcan@marcansoft.com>
 #include "gecko.h"
 #include "types.h"
 #include "ff.h"
+#include "eeprom.h"
 
 // #define	NAND_DEBUG	1
 #define NAND_SUPPORT_WRITE 1
@@ -389,11 +390,11 @@ int dump_NAND_to(char* fileName)
 		//nand_correct(ipc_data, ipc_ecc);
 		
 		/* Save the normal 2048 bytes from the current page */
-		fres = f_write(&fd, &ipc_data, PAGE_SIZE, &writeLength);
+		fres = f_write(&fd, ipc_data, PAGE_SIZE, &writeLength);
 		if(fres) return fres;
 		
 		/* Save the additional 64 bytes with spare / ECC data */
-		fres = f_write(&fd, &ipc_ecc, PAGE_SPARE_SIZE, &writeLength);
+		fres = f_write(&fd, ipc_ecc, PAGE_SPARE_SIZE, &writeLength);
 		if(fres) return fres;
 	}temp = 0
 	for(page = 0; page < 0x40; page++)
@@ -411,10 +412,9 @@ int dump_NAND_to(char* fileName)
 	{	fres = f_write(&fd, &temp, 4, &writeLength);
 		if(fres) return fres;		
 	}
-	for(page = 0; page < 0x40; page++)
-	{	fres = f_write(&fd, &temp, 4, &writeLength);
-		if(fres) return fres;		
-//write 256 SEEPROM here
+	seeprom_read(ipc_data, 0, sizeof(seeprom_t) / 2);
+	fres = f_write(&fd, ipc_data, sizeof(seeprom_t), &writeLength);
+	if(fres) return fres;		
 	}
 	for(page = 0; page < 0x40; page++)
 	{	fres = f_write(&fd, &temp, 4, &writeLength);
