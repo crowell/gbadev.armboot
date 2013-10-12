@@ -36,7 +36,7 @@ FATFS fatfs;
 u32 _main(void *base)
 {	sensorPrep();
 	FRESULT fres;
-	//int res;
+	int res;
 	u32 vector=0;
 	(void)base;
 
@@ -93,13 +93,13 @@ u32 _main(void *base)
 
 	if(read32(0x01200004) == 0x016AE570)
 	{	gecko_printf("Dumping to : %s\n", (char*)0x01200008);
-		/*res = */dump_NAND_to((char*)0x01200008);
+		res = dump_NAND_to((char*)0x01200008);
 	}
 	else
 	{	gecko_printf("Dumping to : " NAND_DUMP_FILE "\n");
-		/*res = */dump_NAND_to(NAND_DUMP_FILE);
+		res = dump_NAND_to(NAND_DUMP_FILE);
 	}
-	gecko_printf("Booting System Menu\n");
+	screen_printf("NAND dumping returned %d. Booting System Menu\n", res);
 	vector = boot2_run(1, 2);
 	goto shutdown;
 
