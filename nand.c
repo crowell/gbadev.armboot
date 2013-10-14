@@ -364,16 +364,16 @@ void nand_ipc(volatile ipc_request *req)
 
 int dump_NAND_to(char* fileName)
 {	const char* humanReadable = "BackupMii v1\nConsole ID: ####xxxx";
-	u32 writeLength, page, temp;
+	u32 writeLength, page, temp, total = 0;
 	int ret, fres = 0;
 	FIL fd;
 	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
 	screen_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - Reading block:\n     / %d.", NAND_MAX_PAGE/64 + 1);
-	for (page = 0; page < NAND_MAX_PAGE; page++)
+	for (page = 0; page < 6400/*NAND_MAX_PAGE*/; page++)
 	{
-		if(!page%64)
-			screen_printf("\r%d", page/64 + 1);
+		if(page%64 == 0)
+			screen_printf("\r%d(%d)", page/64 + 1, total);
 		
 		nand_read_page(page, ipc_data, ipc_ecc);
 		/*if (ret < 0)
@@ -393,11 +393,12 @@ int dump_NAND_to(char* fileName)
 		/* Save the normal 2048 bytes from the current page */
 		fres = f_write(&fd, ipc_data, PAGE_SIZE, &writeLength);
 		if(fres) return fres;
-		
+		total += writeLength;
 		/* Save the additional 64 bytes with spare / ECC data */
 		fres = f_write(&fd, ipc_ecc, PAGE_SPARE_SIZE, &writeLength);
 		if(fres) return fres;
-	}temp = 0;
+ 		total += writeLength;
+  }temp = 0;
 	fres = f_puts(humanReadable, &fd);
 	if(fres) return fres;
 	for(page = sizeof(humanReadable); page < 0x40; page++)
