@@ -396,7 +396,7 @@ int dump_NAND_to(char* fileName)
 
 		/* Save the additional 64 bytes with spare / ECC data */
 		fres = f_write(&fd, ipc_ecc, PAGE_SPARE_SIZE, &writeLength);
-		if(fres || writeLength < PAGE_SIZE) return fres;
+		if(fres || writeLength < PAGE_SPARE_SIZE) return fres;
   }temp = 0;
 	fres = f_puts(humanReadable, &fd);
 	if(fres < 0) return fres;
