@@ -96,6 +96,21 @@ u32 makeAbsoluteBranch(u32 destAddr, bool linked)
 	return ret;
 }
 
+void powerpc_jump_stub(u32 location, u32 entry)
+{
+	// lis r3, entry@h
+	write32(location + 4 * 0, 0x3c600000 | entry >> 16);
+	// ori r3, r3, entry@l
+	write32(location + 4 * 1, 0x60630000 | (entry & 0xffff));
+	// mtsrr0 r3
+	write32(location + 4 * 2, 0x7c7a03a6);
+	// li r3, 0
+	write32(location + 4 * 3, 0x38600000);
+	// mtsrr1 r3
+	write32(location + 4 * 4, 0x7c7b03a6);
+	// rfi
+	write32(location + 4 * 5, 0x4c000064);
+}
 
 int powerpc_load_dol(const char *path, u32 *entry)
 {
@@ -234,7 +249,6 @@ int powerpc_load_elf(const char* path)
 	dc_flushall();
 
 	gecko_printf("ELF load done. Entry point: %08x\n", elfhdr.e_entry);
-	//*entry = elfhdr.e_entry;
 	return 0;
 }
 
@@ -242,22 +256,22 @@ int powerpc_load_elf(const char* path)
 int powerpc_boot_file(const char *path)
 {
 	int fres = 0;
-	FIL fd;
-	u32 decryptionEndAddress, entry;
 	
-	fres = powerpc_load_dol(path, &entry);
-	gecko_printf("powerpc_load_dol returned %d .\n", fres);
+	gecko_printf("powerpc_load_elf returned %d .\n", fres = powerpc_load_elf(path));
 	if(fres) return fres;
-	decryptionEndAddress = ( 0x1330100 + read32(0x133008c + read32(0x1330008) ) -1 ) & ~3;
 	gecko_printf("0xd8005A0 register value is %08x.\n", read32(0xd8005A0));
 	if((read32(0xd8005A0) & 0xFFFF0000) != 0xCAFE0000)
-	{	gecko_printf("Not a Wii U. Aborting\n");
-		return -1;
+	{	gecko_printf("Running old Wii code.\n");
+		powerpc_upload_oldstub(elfhdr.e_entry);
+		powerpc_reset();
+		gecko_printf("PPC booted!\n");
+		return 0;
 	}gecko_printf("Running Wii U code.\n");
-	dc_flushall();
 	u32 oldValue = read32(0x1330100);
-	u32 oldValue2 = read32(decryptionEndAddress);
 
+	set32(HW_DIFLAGS, DIFLAGS_BOOT_CODE);
+	set32(HW_AHBPROT, 0xFFFFFFFF);
+	
 	gecko_printf("Resetting PPC. End on-screen debug output.\n\n");
 	gecko_enable(0);
 
@@ -271,22 +285,12 @@ int powerpc_boot_file(const char *path)
 	// do race attack here
 	do dc_invalidaterange((void*)0x1330100,32);
 	while(oldValue == read32(0x1330100));
-	oldValue = read32(0x1330100);
-	write32(0x1330100, 0x48000000); // infinite loop
+	
+	write32(0x1330100, 0x38802000); // li r4, 0x2000
+	write32(0x1330104, 0x7c800124); // mtmsr r4
+	powerpc_jump_stub(0x1330108, elfhdr.e_entry);
 	dc_flushrange((void*)0x1330100,32);
-	sensorbarOn();
-	// wait for decryption / validation to finish
-	do dc_invalidaterange((void*)decryptionEndAddress,32);
-	while(oldValue2 == read32(decryptionEndAddress));
-	sensorbarOff();
-	//dump decrypted memory area
-	u32 writeLength;
-	f_open(&fd, "/bootmii/dump.bin", FA_CREATE_ALWAYS|FA_WRITE);
-	f_write(&fd, &oldValue, 4, &writeLength);
-	f_write(&fd, (void*)0x1330104, decryptionEndAddress-0x1330100, &writeLength);
-	f_close(&fd);
-	systemReset();
-	return fres;
+	return 0;
 }
 
 
