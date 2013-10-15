@@ -364,7 +364,7 @@ void nand_ipc(volatile ipc_request *req)
 
 int dump_NAND_to(char* fileName)
 {	const char* humanReadable = "BackupMii v1\nConsole ID: ####xxxx";
-	u32 writeLength, page, temp, total = 0;
+	u32 writeLength, page, temp;
 	int ret, fres = 0;
 	FIL fd;
 	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
@@ -373,7 +373,7 @@ int dump_NAND_to(char* fileName)
 	for (page = 0; page < 6400/*NAND_MAX_PAGE*/; page++)
 	{
 		if(page%64 == 0)
-			screen_printf("\r%d(%d)", page/64 + 1, total);
+			screen_printf("\r%d", page/64 + 1);
 		
 		nand_read_page(page, ipc_data, ipc_ecc);
 		/*if (ret < 0)
@@ -392,15 +392,14 @@ int dump_NAND_to(char* fileName)
 		
 		/* Save the normal 2048 bytes from the current page */
 		fres = f_write(&fd, ipc_data, PAGE_SIZE, &writeLength);
-		if(fres) return fres;
-		total += writeLength;
+		if(fres || writeLength < PAGE_SIZE) return fres;
+
 		/* Save the additional 64 bytes with spare / ECC data */
 		fres = f_write(&fd, ipc_ecc, PAGE_SPARE_SIZE, &writeLength);
-		if(fres) return fres;
- 		total += writeLength;
+		if(fres || writeLength < PAGE_SIZE) return fres;
   }temp = 0;
 	fres = f_puts(humanReadable, &fd);
-	if(fres) return fres;
+	if(fres < 0) return fres;
 	for(page = sizeof(humanReadable); page < 0x40; page++)
 	{	fres = f_write(&fd, &temp, 4, &writeLength);
 		if(fres) return fres;
@@ -421,7 +420,7 @@ int dump_NAND_to(char* fileName)
 	for(page = 0; page < 0x40; page++)
 	{	fres = f_write(&fd, &temp, 4, &writeLength);
 		if(fres) return fres;
-	}
+	}screen_printf("\nDone.\n");
 	f_close(&fd);
 	return fres;
 }
