@@ -363,7 +363,7 @@ void nand_ipc(volatile ipc_request *req)
 }
 
 int dump_NAND_to(char* fileName)
-{	const char* humanReadable = "BackupMii v1\nConsole ID: dontknow";
+{	const char* humanReadable = "BackupMii v1, ConsoleID: %08x";
 	u32 writeLength, page, temp;
 	int ret, fres = 0;
 	FIL fd;
@@ -372,14 +372,14 @@ int dump_NAND_to(char* fileName)
 	screen_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - blocks dumped:\n0    / %d.\r", NAND_MAX_PAGE/64);
 	for (page = 0; page < NAND_MAX_PAGE; page++)
 	{
-  	nand_read_page(page, ipc_data, ipc_ecc);
+		nand_read_page(page, ipc_data, ipc_ecc);
 		nand_wait();
 		
 		ret = nand_correct(page, ipc_data, ipc_ecc);
 		if (ret < 0)
 			screen_printf(" - bad NAND page found: 0x%x (from block %d).\n     / %d.\r", page, page/64, NAND_MAX_PAGE/64);
 		
-  	/* Save the normal 2048 bytes from the current page */
+		/* Save the normal 2048 bytes from the current page */
 		fres = f_write(&fd, ipc_data, PAGE_SIZE, &writeLength);
 		if(fres || writeLength < PAGE_SIZE) return fres;
 
@@ -389,9 +389,13 @@ int dump_NAND_to(char* fileName)
  		
 		if((page+1)%64 == 0)
 			screen_printf("%d\r", (page+1)/64);
-	}temp = 0;
-	fres = f_puts(humanReadable, &fd);
+	}
+	write32(HW_OTPCMD, 9 | 0x80000000); // gets the console ID from OTP
+	temp = read32(HW_OTPDATA);
+	s_printf(ipc_data, humanReadable, temp);
+	fres = f_puts(ipc_data, &fd);
 	if(fres < 0) return fres;
+	temp = 0;
 	for(page = 33; page < 0x100; page++)
 	{	fres = f_write(&fd, &temp, 1, &writeLength);
 		if(fres) return fres;
@@ -401,7 +405,8 @@ int dump_NAND_to(char* fileName)
 		temp = read32(HW_OTPDATA);
 		fres = f_write(&fd, &temp, 4, &writeLength);
 		if(fres) return fres;
-	}temp = 0;
+	}
+	temp = 0;
 	for(page = 0; page <= 0x1F; page++)
 	{	fres = f_write(&fd, &temp, 4, &writeLength);
 		if(fres) return fres;
@@ -412,7 +417,8 @@ int dump_NAND_to(char* fileName)
 	for(page = 0; page < 0x40; page++)
 	{	fres = f_write(&fd, &temp, 4, &writeLength);
 		if(fres) return fres;
-	}screen_printf("\nDone.\n");
+	}
+	screen_printf("\nDone.\n");
 	f_close(&fd);
 	return fres;
 }
