@@ -23,6 +23,7 @@ Copyright (C) 2008, 2009	Hector Martin "marcan" <marcan@marcansoft.com>
 #include "types.h"
 #include "ff.h"
 #include "seeprom.h"
+#include "vsprintf.h"
 
 // #define	NAND_DEBUG	1
 #define NAND_SUPPORT_WRITE 1
@@ -360,6 +361,17 @@ void nand_ipc(volatile ipc_request *req)
 			gecko_printf("IPC: unknown SLOW NAND request %04x\n",
 					req->req);
 	}
+}
+
+int s_printf(char*buffer, const char *fmt, ...)
+{
+	va_list args;
+	int i;
+
+	va_start(args, fmt);
+	i = vsprintf(buffer, fmt, args);
+	va_end(args);
+	return i;
 }
 
 int dump_NAND_to(char* fileName)

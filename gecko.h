@@ -28,7 +28,6 @@ u8 gecko_enable(const u8 enable);
 int gecko_printf(const char *fmt, ...) __attribute__((format (printf, 1, 2)));
 #endif
 int screen_printf(const char *fmt, ...) __attribute__((format (printf, 1, 2)));
-int s_printf(char*buffer, const char *fmt, ...) __attribute__((format (printf, 1, 2, 3)));
 
 void gecko_process(void);
 
