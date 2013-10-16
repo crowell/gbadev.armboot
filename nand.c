@@ -369,11 +369,11 @@ int dump_NAND_to(char* fileName)
 	FIL fd;
 	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
-	screen_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - Reading block:\n     / %d.", NAND_MAX_PAGE/64 + 1);
+	screen_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - Reading block:\n     / %d.\r", NAND_MAX_PAGE/64 + 1);
 	for (page = 0; page < NAND_MAX_PAGE; page++)
 	{
 		if(page%64 == 0)
-			screen_printf("\r%d", page/64 + 1);
+			screen_printf("%d\r", page/64 + 1);
 		
 		nand_read_page(page, ipc_data, ipc_ecc);
 		/*if (ret < 0)
@@ -386,11 +386,9 @@ int dump_NAND_to(char* fileName)
 		
 		ret = nand_correct(page, ipc_data, ipc_ecc);
 		if (ret < 0)
-			screen_printf("\r - bad NAND page found: 0x%x.\n     / %d.", page, NAND_MAX_PAGE/64 + 1);
+			screen_printf(" - bad NAND page found: 0x%x.\n     / %d.\r", page, NAND_MAX_PAGE/64 + 1);
 		
-		//nand_correct(ipc_data, ipc_ecc);
-		
-		/* Save the normal 2048 bytes from the current page */
+  	/* Save the normal 2048 bytes from the current page */
 		fres = f_write(&fd, ipc_data, PAGE_SIZE, &writeLength);
 		if(fres || writeLength < PAGE_SIZE) return fres;
 
