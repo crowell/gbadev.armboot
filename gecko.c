@@ -242,45 +242,22 @@ u8 gecko_enable_console(const u8 enable)
 	return gecko_console_enabled;
 }
 
-void print_to_screen(const char*fmt)
-{
-//	while(*fmt) {
-		do dc_invalidaterange((void*)0x01200000,32);
-		while(read8(0x01200000));
-/*		if(read8(0x01200000))
-		{	udelay(20000); // wait for PPC's vsync
-			dc_invalidaterange((void*)0x01200000,32);
-			if(read8(0x01200000))
-			{	udelay(20000); // wait for PPC's vsync AGAIN
-				dc_invalidaterange((void*)0x01200000,32);
-				if(read8(0x01200000))
-				{	gecko_enable(0);
-					write8(0x01200000, 'X');
-					break;
-				}
-			}
-		}
-*/		write8(0x01200000, 1);
-		dc_flushrange((void*)0x01200000,32);
-//		fmt++;
-//	}
-}
-
 #ifndef NDEBUG
 int gecko_printf(const char *fmt, ...)
 {	
-	if(!gecko_enabled)
+	if(!(gecko_enabled & 1))
 		return 0;
 	va_list args;
 	char* buffer = (char*)0x01200008;
 	int i;
 
 	va_start(args, fmt);
+	do dc_invalidaterange((void*)0x01200000,32);
+	while(read8(0x01200000));
 	i = vsprintf(buffer, fmt, args);
 	va_end(args);
-	fmt = buffer;
-	if(gecko_enabled & 1)
-	print_to_screen(fmt);
+	write8(0x01200000, 1);
+	dc_flushrange((void*)0x01200000,0x120);
 	return 0;
 #ifdef GECKO_SAFE
 	return gecko_sendbuffer_safe(buffer, i);
@@ -292,18 +269,19 @@ int gecko_printf(const char *fmt, ...)
 
 int screen_printf(const char *fmt, ...)
 {	
-	if(!gecko_enabled)
+	if(!(gecko_enabled & 5))
 		return 0;
 	va_list args;
 	char* buffer = (char*)0x01200008;
 	int i;
 
 	va_start(args, fmt);
+	do dc_invalidaterange((void*)0x01200000,32);
+	while(read8(0x01200000));
 	i = vsprintf(buffer, fmt, args);
 	va_end(args);
-	fmt = buffer;
-	if(gecko_enabled & 5)
-	print_to_screen(fmt);
+	write8(0x01200000, 1);
+	dc_flushrange((void*)0x01200000,0x120);
 	return 0;
 #ifdef GECKO_SAFE
 	return gecko_sendbuffer_safe(buffer, i);
