@@ -241,11 +241,13 @@ u8 gecko_enable_console(const u8 enable)
 
 	return gecko_console_enabled;
 }
+
 void print_to_screen(const char*fmt)
 {
 	while(*fmt)
 	{	dc_invalidaterange((void*)0x01200000,32);
-		if(read8(0x01200000))
+		while(read8(0x01200000));
+/*		if(read8(0x01200000))
 		{	udelay(20000); // wait for PPC's vsync
 			dc_invalidaterange((void*)0x01200000,32);
 			if(read8(0x01200000))
@@ -258,7 +260,7 @@ void print_to_screen(const char*fmt)
 				}
 			}
 		}
-		write8(0x01200000, *fmt);
+*/		write8(0x01200000, *fmt);
 		dc_flushrange((void*)0x01200000,32);
 		fmt++;
 	}
