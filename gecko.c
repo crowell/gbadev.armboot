@@ -244,8 +244,8 @@ u8 gecko_enable_console(const u8 enable)
 
 void print_to_screen(const char*fmt)
 {
-	while(*fmt)
-	{	do dc_invalidaterange((void*)0x01200000,32);
+//	while(*fmt) {
+		do dc_invalidaterange((void*)0x01200000,32);
 		while(read8(0x01200000));
 /*		if(read8(0x01200000))
 		{	udelay(20000); // wait for PPC's vsync
@@ -260,10 +260,10 @@ void print_to_screen(const char*fmt)
 				}
 			}
 		}
-*/		write8(0x01200000, *fmt);
+*/		write8(0x01200000, 1);
 		dc_flushrange((void*)0x01200000,32);
-		fmt++;
-	}
+//		fmt++;
+//	}
 }
 
 #ifndef NDEBUG
@@ -272,7 +272,7 @@ int gecko_printf(const char *fmt, ...)
 	if(!gecko_enabled)
 		return 0;
 	va_list args;
-	char buffer[256];
+	char* buffer = (char*)0x01200008;
 	int i;
 
 	va_start(args, fmt);
@@ -295,7 +295,7 @@ int screen_printf(const char *fmt, ...)
 	if(!gecko_enabled)
 		return 0;
 	va_list args;
-	char buffer[256];
+	char* buffer = (char*)0x01200008;
 	int i;
 
 	va_start(args, fmt);

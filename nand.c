@@ -382,7 +382,7 @@ int dump_NAND_to(char* fileName)
 	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
 	screen_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - blocks dumped:\n0    / %d.\r", NAND_MAX_PAGE/64);
-	for (page = 0; page < NAND_MAX_PAGE; page++)
+	for (page = 0; page < 64000 /*NAND_MAX_PAGE*/; page++)
 	{
 		nand_read_page(page, ipc_data, ipc_ecc);
 		nand_wait();
