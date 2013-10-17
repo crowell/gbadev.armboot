@@ -245,7 +245,7 @@ u8 gecko_enable_console(const u8 enable)
 void print_to_screen(const char*fmt)
 {
 	while(*fmt)
-	{	dc_invalidaterange((void*)0x01200000,32);
+	{	do dc_invalidaterange((void*)0x01200000,32);
 		while(read8(0x01200000));
 /*		if(read8(0x01200000))
 		{	udelay(20000); // wait for PPC's vsync
