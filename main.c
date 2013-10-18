@@ -30,7 +30,8 @@ Copyright (C) 2009		John Kelley <wiidev@kelley.ca>
 #include "boot2.h"
 
 #define NAND_DUMP_FILE "/bootmii/nand.bin"
-
+#define PPC_BOOT_FILE "/bootmii/ppcboot.elf"
+static char path[256];
 FATFS fatfs;
 
 u32 _main(void *base)
@@ -39,6 +40,10 @@ u32 _main(void *base)
 	int res;
 	u32 vector=0;
 	(void)base;
+	bool externalPath = read32(0x01200004) == 0x016AE570;
+	
+	if(externalPath)
+		strlcpy(path, (char*)0x01200008, 256);
 
 	gecko_init();
 	gecko_printf("Triinux team's NAND dumper loading\n");
@@ -91,9 +96,9 @@ u32 _main(void *base)
 
 
 
-	if(read32(0x01200004) == 0x016AE570)
-	{	gecko_printf("Dumping to : %s\n", (char*)0x01200008);
-		res = dump_NAND_to((char*)0x01200008);
+	if(externalPath)
+	{	gecko_printf("Dumping to : %s\n", path);
+		res = dump_NAND_to(path);
 	}
 	else
 	{	gecko_printf("Dumping to : " NAND_DUMP_FILE "\n");
