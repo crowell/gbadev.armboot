@@ -106,8 +106,8 @@ u32 _main(void *base)
 	}
 	screen_printf("NAND dumping returned %d. Booting System Menu\n", res);
 	if(res)
-		systemReset();
-	while(0);
+		while(0);
+	systemReset();
 	gecko_printf("Going into IPC mainloop...\n");
 	vector = ipc_process_slow();
 	gecko_printf("IPC mainloop done!\n");
