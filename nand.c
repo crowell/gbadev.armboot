@@ -375,14 +375,14 @@ int s_printf(char*buffer, const char *fmt, ...)
 }
 
 int dump_NAND_to(char* fileName)
-{	const char* humanReadable = "BackupMii v1, ConsoleID: %08x";
+{	const char* humanReadable = "BackupMii v1, ConsoleID: %08x\n";
 	u32 writeLength, page, temp;
 	int ret, fres = 0;
 	FIL fd;
 	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
 	screen_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - blocks dumped:\n0    / %d.\r", NAND_MAX_PAGE/64);
-	for (page = 0; page < 64000 /*NAND_MAX_PAGE*/; page++)
+	for (page = 0; page < NAND_MAX_PAGE; page++)
 	{
 		nand_read_page(page, ipc_data, ipc_ecc);
 		nand_wait();
@@ -408,7 +408,7 @@ int dump_NAND_to(char* fileName)
 	fres = f_puts((char*)ipc_data, &fd);
 	if(fres < 0) return fres;
 	temp = 0;
-	for(page = 33; page < 0x100; page++)
+	for(page = 34; page < 0x100; page++)
 	{	fres = f_write(&fd, &temp, 1, &writeLength);
 		if(fres) return fres;
 	}
