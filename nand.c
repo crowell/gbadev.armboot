@@ -409,7 +409,6 @@ int dump_NAND_to(char* fileName)
 	}
 	write32(HW_OTPCMD, 9 | 0x80000000); // gets the console ID from OTP
 	temp = read32(HW_OTPDATA);
-	s_printf((char*)ipc_data, humanReadable, temp);
 	page = f_printf(&fd, humanReadable, temp);
 	if(page < 0) return page;
 	temp = 0;
