@@ -410,7 +410,7 @@ int dump_NAND_to(char* fileName)
 	write32(HW_OTPCMD, 9 | 0x80000000); // gets the console ID from OTP
 	temp = read32(HW_OTPDATA);
 	page = f_printf(&fd, humanReadable, temp);
-	if(page < 0) return page;
+	if(page >= 256) return page;
 	temp = 0;
 	for(; page < 0x100; page++)
 	{	fres = f_write(&fd, &temp, 1, &writeLength);
