@@ -363,21 +363,12 @@ void nand_ipc(volatile ipc_request *req)
 	}
 }
 
-int s_printf(char*buffer, const char *fmt, ...)
-{
-	va_list args;
-	int i;
-
-	va_start(args, fmt);
-	i = vsprintf(buffer, fmt, args);
-	va_end(args);
-	return i;
-}
+inline u32 pageToOffset(u32 page) {return (PAGE_SIZE + PAGE_SPARE_SIZE) * page;}
 
 int dump_NAND_to(char* fileName)
 {	const char* humanReadable = "BackupMii v1, ConsoleID: %08x\n";
 	u32 writeLength, page, temp;
-	int ret, fres = 0;
+	int ret, fres = 0, oldFres = 16;
 	FIL fd;
 	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
@@ -388,16 +379,30 @@ int dump_NAND_to(char* fileName)
 		nand_wait();
 		
 		ret = nand_correct(page, ipc_data, ipc_ecc);
-		if (ret < 0)
+		if (ret)
 			screen_printf(" - bad NAND page found: 0x%x (from block %d).\n     / %d.\r", page, page/64, NAND_MAX_PAGE/64);
 		
 		/* Save the normal 2048 bytes from the current page */
 		fres = f_write(&fd, ipc_data, PAGE_SIZE, &writeLength);
-		if(fres || writeLength < PAGE_SIZE) return fres;
+		while(fres || writeLength < PAGE_SIZE)
+		{	f_lseek(&fd, pageToOffset(page));
+			if(fres != oldFres)
+			{	oldFres = fres;
+				screen_printf("Error writing to file (%d). Retrying.\n     / %d.\r%d", fres, NAND_MAX_PAGE/64, page/64);
+			}
+			fres = f_write(&fd, ipc_data, PAGE_SIZE, &writeLength);
+		}oldFres = 16;
 
 		/* Save the additional 64 bytes with spare / ECC data */
 		fres = f_write(&fd, ipc_ecc, PAGE_SPARE_SIZE, &writeLength);
-		if(fres || writeLength < PAGE_SPARE_SIZE) return fres;
+		while(fres || writeLength < PAGE_SPARE_SIZE)
+		{	f_lseek(&fd, pageToOffset(page) + PAGE_SIZE);
+			if(fres != oldFres)
+			{	oldFres = fres;
+				screen_printf("Error writing to file (%d). Retrying.\n     / %d.\r%d", fres, NAND_MAX_PAGE/64, page/64);
+			}
+			fres = f_write(&fd, ipc_data, PAGE_SIZE, &writeLength);
+		}oldFres = 16;
  		
 		if((page+1)%64 == 0)
 			screen_printf("%d\r", (page+1)/64);
@@ -405,10 +410,10 @@ int dump_NAND_to(char* fileName)
 	write32(HW_OTPCMD, 9 | 0x80000000); // gets the console ID from OTP
 	temp = read32(HW_OTPDATA);
 	s_printf((char*)ipc_data, humanReadable, temp);
-	fres = f_puts((char*)ipc_data, &fd);
-	if(fres < 0) return fres;
+	page = f_printf(&fd, humanReadable, temp);
+	if(page < 0) return page;
 	temp = 0;
-	for(page = 34; page < 0x100; page++)
+	for(; page < 0x100; page++)
 	{	fres = f_write(&fd, &temp, 1, &writeLength);
 		if(fres) return fres;
 	}

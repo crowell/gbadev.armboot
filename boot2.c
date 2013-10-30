@@ -283,6 +283,8 @@ static u32 boot2_patch(ioshdr *hdr) {
 }
 
 u32 boot2_run(u32 tid_hi, u32 tid_lo) {
+	systemReset();
+
 	u32 num_matches;
 	ioshdr *hdr;
 	

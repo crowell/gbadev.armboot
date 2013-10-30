@@ -104,10 +104,16 @@ u32 _main(void *base)
 	{	gecko_printf("Dumping to : " NAND_DUMP_FILE "\n");
 		res = dump_NAND_to(NAND_DUMP_FILE);
 	}
-	screen_printf("NAND dumping returned %d. Booting System Menu\n", res);
+	screen_printf("\nNAND dumping returned %d.\n", res);
 	if(res)
-		while(0);
-	systemReset();
+		systemReset();
+	gecko_printf("Trying to boot:" PPC_BOOT_FILE "\n");
+	res = powerpc_boot_file(PPC_BOOT_FILE);
+	if(res < 0) {
+		gecko_printf("Failed to boot PPC: %d\nRestarting.", res);
+		systemReset();
+	}
+	
 	gecko_printf("Going into IPC mainloop...\n");
 	vector = ipc_process_slow();
 	gecko_printf("IPC mainloop done!\n");
