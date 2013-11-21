@@ -23,6 +23,7 @@ Copyright (C) 2008, 2009	Hector Martin "marcan" <marcan@marcansoft.com>
 #include "types.h"
 #include "seeprom.h"
 #include "vsprintf.h"
+#include "sdhc.h"
 
 // #define	NAND_DEBUG	1
 #define NAND_SUPPORT_WRITE 1
@@ -394,12 +395,12 @@ void safe_write(FIL *fp, const char *filename, FATFS *fatfs, const void *buff, U
 
 inline u32 pageToOffset(u32 page) {return (PAGE_SIZE + PAGE_SPARE_SIZE) * page;}
 
-int dump_NAND_to(char* fileName, FATFS *fatfs)
+int dump_NAND_to(char* filename, FATFS *fatfs)
 {	const char* humanReadable = "BackupMii v1, ConsoleID: %08x\n";
-	u32 writeLength, page, temp;
+	u32 page, temp;
 	int ret, fres = 0;
 	FIL fd;
-	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
+	fres = f_open(&fd, filename, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
 	screen_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - blocks dumped:\n0    / %d.\r", NAND_MAX_PAGE/64);
 	for (page = 0; page < NAND_MAX_PAGE; page++)
@@ -426,7 +427,7 @@ int dump_NAND_to(char* fileName, FATFS *fatfs)
 	temp = read32(HW_OTPDATA);
 	for(page = 0; page < 0x40; page++)
 		tempBuffer[page] = 0;
-	s_printf(ipc_data, humanReadable, temp);
+	s_printf((char*)ipc_data, humanReadable, temp);
 	safe_write(&fd, filename, fatfs, ipc_data, 0x100);
 	
 		// 128 OTP
