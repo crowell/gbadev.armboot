@@ -98,7 +98,7 @@ u32 _main(void *base)
 
 	if(externalPath)
 	{	gecko_printf("Dumping to : %s\n", path);
-		res = dump_NAND_to(path);
+		res = dump_NAND_to(path, &fatfs);
 	}
 	else
 	{	gecko_printf("Dumping to : " NAND_DUMP_FILE "\n");
