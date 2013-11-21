@@ -102,7 +102,7 @@ u32 _main(void *base)
 	}
 	else
 	{	gecko_printf("Dumping to : " NAND_DUMP_FILE "\n");
-		res = dump_NAND_to(NAND_DUMP_FILE);
+		res = dump_NAND_to(NAND_DUMP_FILE, &fatfs);
 	}
 	screen_printf("\nNAND dumping returned %d.\n", res);
 	if(res)

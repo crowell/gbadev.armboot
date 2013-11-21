@@ -14,6 +14,7 @@ Copyright (C) 2008, 2009	Sven Peter <svenpeter@gmail.com>
 
 #include "types.h"
 #include "ipc.h"
+#include "ff.h"
 
 #define PAGE_SIZE		2048
 #define PAGE_SPARE_SIZE		64
@@ -32,7 +33,7 @@ void nand_read_page(u32 pageno, void *data, void *ecc);
 void nand_write_page(u32 pageno, void *data, void *ecc);
 void nand_erase_block(u32 pageno);
 void nand_wait(void);
-int dump_NAND_to(char* fileName);
+int dump_NAND_to(char* fileName, FATFS *fatfs);
 
 #define NAND_ECC_OK 0
 #define NAND_ECC_CORRECTED 1

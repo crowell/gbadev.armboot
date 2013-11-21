@@ -21,7 +21,6 @@ Copyright (C) 2008, 2009	Hector Martin "marcan" <marcan@marcansoft.com>
 #include "ipc.h"
 #include "gecko.h"
 #include "types.h"
-#include "ff.h"
 #include "seeprom.h"
 #include "vsprintf.h"
 
@@ -363,12 +362,42 @@ void nand_ipc(volatile ipc_request *req)
 	}
 }
 
+int s_printf(char *buffer, const char *fmt, ...)
+{	int i;
+	va_list args;
+	va_start(args, fmt);
+	i = vsprintf(buffer, fmt, args);
+	va_end(args);
+	return i;
+}
+
+void safe_write(FIL *fp, const char *filename, FATFS *fatfs, const void *buff, UINT btw)
+{	FRESULT fres;
+	UINT bw, startingPoint = fp->fsize;
+	fres = f_write(fp, buff, btw, &bw);
+	if(fres==FR_OK && btw==bw)
+		fres = f_sync(fp);
+	while(fres!=FR_OK || btw!=bw)
+	{	sdhc_exit();
+		sdhc_init();
+		if(f_mount(0, fatfs) != FR_OK)
+			continue;
+		if(f_open(fp, filename, FA_OPEN_ALWAYS|FA_WRITE) != FR_OK)
+			continue;
+		if(f_lseek(fp, startingPoint) != FR_OK)
+			continue;
+		fres = f_write(fp, buff, btw, &bw);
+		if(fres==FR_OK && btw==bw)
+			fres = f_sync(fp);
+	}
+}
+
 inline u32 pageToOffset(u32 page) {return (PAGE_SIZE + PAGE_SPARE_SIZE) * page;}
 
-int dump_NAND_to(char* fileName)
+int dump_NAND_to(char* fileName, FATFS *fatfs)
 {	const char* humanReadable = "BackupMii v1, ConsoleID: %08x\n";
 	u32 writeLength, page, temp;
-	int ret, fres = 0, oldFres = 16;
+	int ret, fres = 0;
 	FIL fd;
 	fres = f_open(&fd, fileName, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
@@ -383,57 +412,44 @@ int dump_NAND_to(char* fileName)
 			screen_printf(" - bad NAND page found: 0x%x (from block %d).\n     / %d.\r", page, page/64, NAND_MAX_PAGE/64);
 		
 		/* Save the normal 2048 bytes from the current page */
-		fres = f_write(&fd, ipc_data, PAGE_SIZE, &writeLength);
-		while(fres || writeLength < PAGE_SIZE)
-		{	f_lseek(&fd, pageToOffset(page));
-			if(fres != oldFres)
-			{	oldFres = fres;
-				screen_printf("Error writing to file (%d). Retrying.\n     / %d.\r%d", fres, NAND_MAX_PAGE/64, page/64);
-			}
-			fres = f_write(&fd, ipc_data, PAGE_SIZE, &writeLength);
-		}oldFres = 16;
+		safe_write(&fd, filename, fatfs, ipc_data, PAGE_SIZE);
 
 		/* Save the additional 64 bytes with spare / ECC data */
-		fres = f_write(&fd, ipc_ecc, PAGE_SPARE_SIZE, &writeLength);
-		while(fres || writeLength < PAGE_SPARE_SIZE)
-		{	f_lseek(&fd, pageToOffset(page) + PAGE_SIZE);
-			if(fres != oldFres)
-			{	oldFres = fres;
-				screen_printf("Error writing to file (%d). Retrying.\n     / %d.\r%d", fres, NAND_MAX_PAGE/64, page/64);
-			}
-			fres = f_write(&fd, ipc_data, PAGE_SIZE, &writeLength);
-		}oldFres = 16;
+		safe_write(&fd, filename, fatfs, ipc_ecc, PAGE_SPARE_SIZE);
  		
 		if((page+1)%64 == 0)
 			screen_printf("%d\r", (page+1)/64);
 	}
+		// 256 human readable
+	u32 *tempBuffer = (u32*)ipc_data;
 	write32(HW_OTPCMD, 9 | 0x80000000); // gets the console ID from OTP
 	temp = read32(HW_OTPDATA);
-	page = f_printf(&fd, humanReadable, temp);
-	if(page >= 256) return page;
-	temp = 0;
-	for(; page < 0x100; page++)
-	{	fres = f_write(&fd, &temp, 1, &writeLength);
-		if(fres) return fres;
-	}
+	for(page = 0; page < 0x40; page++)
+		tempBuffer[page] = 0;
+	s_printf(ipc_data, humanReadable, temp);
+	safe_write(&fd, filename, fatfs, ipc_data, 0x100);
+	
+		// 128 OTP
 	for(page = 0; page <= 0x1F; page++)
 	{	write32(HW_OTPCMD, page | 0x80000000);
-		temp = read32(HW_OTPDATA);
-		fres = f_write(&fd, &temp, 4, &writeLength);
-		if(fres) return fres;
-	}
-	temp = 0;
-	for(page = 0; page <= 0x1F; page++)
-	{	fres = f_write(&fd, &temp, 4, &writeLength);
-		if(fres) return fres;
-	}
+		tempBuffer[page] = read32(HW_OTPDATA);
+	}safe_write(&fd, filename, fatfs, ipc_data, 0x80);
+	
+		// 128 padding
+	for(page = 0; page < 0x20; page++)
+		tempBuffer[page] = 0;
+	safe_write(&fd, filename, fatfs, ipc_data, 0x80);
+	
+		// 256 SEEPROM
 	seeprom_read(ipc_data, 0, sizeof(seeprom_t) / 2);
-	fres = f_write(&fd, ipc_data, sizeof(seeprom_t), &writeLength);
+	safe_write(&fd, filename, fatfs, ipc_data, sizeof(seeprom_t));
+	
+		// 256 padding
 	if(fres) return fres;
 	for(page = 0; page < 0x40; page++)
-	{	fres = f_write(&fd, &temp, 4, &writeLength);
-		if(fres) return fres;
-	}
+		tempBuffer[page] = 0;
+	safe_write(&fd, filename, fatfs, ipc_data, 0x100);
+	
 	screen_printf("\nDone.\n");
 	f_close(&fd);
 	return fres;
