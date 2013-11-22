@@ -446,12 +446,10 @@ int dump_NAND_to(char* filename, FATFS *fatfs)
 	safe_write(&fd, filename, fatfs, ipc_data, sizeof(seeprom_t));
 	
 		// 256 padding
-	if(fres) return fres;
 	for(page = 0; page < 0x40; page++)
 		tempBuffer[page] = 0;
 	safe_write(&fd, filename, fatfs, ipc_data, 0x100);
 	
 	screen_printf("\nDone.\n");
-	f_close(&fd);
-	return fres;
+	return f_close(&fd);
 }
