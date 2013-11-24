@@ -385,10 +385,10 @@ void safe_write(FIL *fp, const char *filename, FATFS *fatfs, const void *buff, U
 			continue;
 		if(f_open(fp, filename, FA_OPEN_ALWAYS|FA_WRITE) != FR_OK)
 			continue;
-		if(f_lseek(fp, startingPoint) != FR_OK)
+*/		if(f_lseek(fp, startingPoint) != FR_OK)
 			continue;
 		fres = f_write(fp, buff, btw, &bw);
-		if(fres==FR_OK && btw==bw)
+/*		if(fres==FR_OK && btw==bw)
 			fres = f_sync(fp);
 */	}
 }
