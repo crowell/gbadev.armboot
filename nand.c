@@ -376,21 +376,21 @@ void safe_write(FIL *fp, const char *filename, FATFS *fatfs, const void *buff, U
 {	FRESULT fres;
 	UINT bw, startingPoint = fp->fsize;
 	fres = f_write(fp, buff, btw, &bw);
-	if(fres==FR_OK && btw==bw)
-		fres = f_sync(fp);
+//	if(fres==FR_OK && btw==bw)
+//		fres = f_sync(fp);
 	while(fres!=FR_OK || btw!=bw)
 	{	sdhc_exit();
 		sdhc_init();
-/*		if(f_mount(0, fatfs) != FR_OK)
+		if(f_mount(0, fatfs) != FR_OK)
 			continue;
-		if(f_open(fp, filename, FA_OPEN_ALWAYS|FA_WRITE) != FR_OK)
-			continue;
-*/		if(f_lseek(fp, startingPoint) != FR_OK)
+//		if(f_open(fp, filename, FA_OPEN_ALWAYS|FA_WRITE) != FR_OK)
+//			continue;
+		if(f_lseek(fp, startingPoint) != FR_OK)
 			continue;
 		fres = f_write(fp, buff, btw, &bw);
-/*		if(fres==FR_OK && btw==bw)
-			fres = f_sync(fp);
-*/	}
+//		if(fres==FR_OK && btw==bw)
+//			fres = f_sync(fp);
+	}
 }
 
 inline u32 pageToOffset(u32 page) {return (PAGE_SIZE + PAGE_SPARE_SIZE) * page;}
