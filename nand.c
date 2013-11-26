@@ -372,6 +372,23 @@ int s_printf(char *buffer, const char *fmt, ...)
 	return i;
 }
 
+void safe_read(FIL *fp, const char *filename, FATFS *fatfs, const void *buff, UINT btw)
+{	FRESULT fres;
+	UINT bw, startingPoint = fp->fsize;
+	fres = f_read(fp, buff, btw, &bw);
+	while(fres!=FR_OK || btw!=bw)
+	{	sdhc_exit();
+		sdhc_init();
+		if(f_mount(0, fatfs) != FR_OK)
+			continue;
+		if(f_open(fp, filename, FA_READ) != FR_OK)
+			continue;
+		if(f_lseek(fp, startingPoint) != FR_OK)
+			continue;
+		fres = f_read(fp, buff, btw, &bw);
+	}
+}
+
 void safe_write(FIL *fp, const char *filename, FATFS *fatfs, const void *buff, UINT btw)
 {	FRESULT fres;
 	UINT bw, startingPoint = fp->fsize;
@@ -383,8 +400,8 @@ void safe_write(FIL *fp, const char *filename, FATFS *fatfs, const void *buff, U
 		sdhc_init();
 		if(f_mount(0, fatfs) != FR_OK)
 			continue;
-//		if(f_open(fp, filename, FA_OPEN_ALWAYS|FA_WRITE) != FR_OK)
-//			continue;
+		if(f_open(fp, filename, FA_OPEN_ALWAYS|FA_WRITE) != FR_OK)
+			continue;
 		if(f_lseek(fp, startingPoint) != FR_OK)
 			continue;
 		fres = f_write(fp, buff, btw, &bw);
