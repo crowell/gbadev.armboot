@@ -393,8 +393,8 @@ void safe_write(FIL *fp, const char *filename, FATFS *fatfs, const void *buff, U
 {	FRESULT fres;
 	UINT bw, startingPoint = fp->fsize;
 	fres = f_write(fp, buff, btw, &bw);
-//	if(fres==FR_OK && btw==bw)
-//		fres = f_sync(fp);
+	if(fres==FR_OK && btw==bw)
+		fres = f_sync(fp);
 	while(fres!=FR_OK || btw!=bw)
 	{	sdhc_exit();
 		sdhc_init();
@@ -405,8 +405,8 @@ void safe_write(FIL *fp, const char *filename, FATFS *fatfs, const void *buff, U
 		if(f_lseek(fp, startingPoint) != FR_OK)
 			continue;
 		fres = f_write(fp, buff, btw, &bw);
-//		if(fres==FR_OK && btw==bw)
-//			fres = f_sync(fp);
+		if(fres==FR_OK && btw==bw)
+			fres = f_sync(fp);
 	}
 }
 
@@ -420,23 +420,39 @@ int dump_NAND_to(char* filename, FATFS *fatfs)
 	fres = f_open(&fd, filename, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
 	screen_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - blocks dumped:\n0    / %d.\r", NAND_MAX_PAGE/64);
-	for (page = 0; page < NAND_MAX_PAGE; page++)
-	{
-		nand_read_page(page, ipc_data, ipc_ecc);
-		nand_wait();
-		
-		ret = nand_correct(page, ipc_data, ipc_ecc);
-		if (ret)
-			screen_printf(" - bad NAND page found: 0x%x (from block %d).\n     / %d.\r", page, page/64, NAND_MAX_PAGE/64);
-		
-		/* Save the normal 2048 bytes from the current page */
-		safe_write(&fd, filename, fatfs, ipc_data, PAGE_SIZE);
-
-		/* Save the additional 64 bytes with spare / ECC data */
-		safe_write(&fd, filename, fatfs, ipc_ecc, PAGE_SPARE_SIZE);
- 		
-		if((page+1)%64 == 0)
-			screen_printf("%d\r", (page+1)/64);
+	for (page = 0; page < NAND_MAX_PAGE; screen_printf("%d\r", page/64))
+	{	for (temp = page; page < temp+64; page++)
+		{	nand_read_page(page, ipc_data, ipc_ecc);
+			nand_wait();
+			
+			ret = nand_correct(page, ipc_data, ipc_ecc);
+			if (ret)
+				screen_printf(" - bad NAND page found: 0x%x (from block %d).\n     / %d.\r", page, page/64, NAND_MAX_PAGE/64);
+			
+			/* Save the normal 2048 bytes from the current page */
+			fres = f_write(&fd, ipc_data, PAGE_SIZE, &bw);
+			if(fres!=FR_OK || PAGE_SIZE!=bw)
+				break;
+			
+			/* Save the additional 64 bytes with spare / ECC data */
+			fres = f_write(&fd, ipc_ecc, PAGE_SPARE_SIZE, &bw);
+			if(fres!=FR_OK || PAGE_SPARE_SIZE!=bw)
+				break;
+		}
+		if(page == temp+64)
+			fres = f_sync(&fd);
+		if(fres != FR_OK || page < temp+64)while(1)
+		{	sdhc_exit();
+			sdhc_init();
+			if(f_mount(0, fatfs) != FR_OK)
+				continue;
+			if(f_open(&fd, filename, FA_OPEN_ALWAYS|FA_WRITE) != FR_OK)
+				continue;
+			if(f_lseek(&fd, pageToOffset(temp)) != FR_OK)
+				continue;
+			page = temp;
+			break;
+		}
 	}
 		// 256 human readable
 	u32 *tempBuffer = (u32*)ipc_data;
@@ -467,6 +483,66 @@ int dump_NAND_to(char* filename, FATFS *fatfs)
 		tempBuffer[page] = 0;
 	safe_write(&fd, filename, fatfs, ipc_data, 0x100);
 	
+	screen_printf("\nDone.\n");
+	return f_close(&fd);
+}
+
+int write_NAND_from(char* filename, FATFS *fatfs)
+{	const char* humanReadable = "BackupMii v1, ConsoleID: %08x\n";
+	u32 page, temp;
+	int ret, fres = 0;
+	FIL fd;
+	fres = f_open(&fd, filename, FA_READ);
+	if(fres) return fres;
+	
+	
+	
+		// 256 human readable
+	u32 *tempBuffer = (u32*)ipc_data;
+	write32(HW_OTPCMD, 9 | 0x80000000); // gets the console ID from OTP
+	temp = read32(HW_OTPDATA);
+	for(page = 0; page < 0x40; page++)
+		tempBuffer[page] = 0;
+	s_printf((char*)ipc_data, humanReadable, temp);
+	safe_write(&fd, filename, fatfs, ipc_data, 0x100);
+	
+		// 128 OTP
+	for(page = 0; page <= 0x1F; page++)
+	{	write32(HW_OTPCMD, page | 0x80000000);
+		tempBuffer[page] = read32(HW_OTPDATA);
+	}safe_write(&fd, filename, fatfs, ipc_data, 0x80);
+	
+		// 128 padding
+	for(page = 0; page < 0x20; page++)
+		tempBuffer[page] = 0;
+	safe_write(&fd, filename, fatfs, ipc_data, 0x80);
+	
+		// 256 SEEPROM
+	seeprom_read(ipc_data, 0, sizeof(seeprom_t) / 2);
+	safe_write(&fd, filename, fatfs, ipc_data, sizeof(seeprom_t));
+	
+		// 256 padding
+	for(page = 0; page < 0x40; page++)
+		tempBuffer[page] = 0;
+	safe_write(&fd, filename, fatfs, ipc_data, 0x100);
+	
+	
+	
+	
+	screen_printf("\nNAND write process started. Do NOT remove/change the SD card, power down, let the power go out, touch any buttons or do ANYTHING with your Wii until the process has completed. Doing so WILL brick your Wii.\n\n - blocks dumped:\n0    / %d.\r", NAND_MAX_PAGE/64);
+	for (page = nand_min_page; page < NAND_MAX_PAGE; page++)
+	{	/* Read the normal 2048 bytes for the current page */
+		safe_read(&fd, filename, fatfs, ipc_data, PAGE_SIZE);
+
+		/* Read the additional 64 bytes of spare / ECC data */
+		safe_read(&fd, filename, fatfs, ipc_ecc, PAGE_SPARE_SIZE);
+ 		
+		nand_write_page(page, ipc_data, ipc_ecc);
+		nand_wait();
+		
+		if((page+1)%64 == 0)
+			screen_printf("%d\r", (page+1)/64);
+	}
 	screen_printf("\nDone.\n");
 	return f_close(&fd);
 }
