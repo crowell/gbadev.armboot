@@ -414,7 +414,7 @@ inline u32 pageToOffset(u32 page) {return (PAGE_SIZE + PAGE_SPARE_SIZE) * page;}
 
 int dump_NAND_to(char* filename, FATFS *fatfs)
 {	const char* humanReadable = "BackupMii v1, ConsoleID: %08x\n";
-	u32 page, temp;
+	u32 page, temp, bw;
 	int ret, fres = 0;
 	FIL fd;
 	fres = f_open(&fd, filename, FA_CREATE_ALWAYS|FA_WRITE);
@@ -426,7 +426,7 @@ int dump_NAND_to(char* filename, FATFS *fatfs)
 			nand_wait();
 			
 			ret = nand_correct(page, ipc_data, ipc_ecc);
-			if (ret)
+			if (ret < 0)
 				screen_printf(" - bad NAND page found: 0x%x (from block %d).\n     / %d.\r", page, page/64, NAND_MAX_PAGE/64);
 			
 			/* Save the normal 2048 bytes from the current page */
