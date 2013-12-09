@@ -29,7 +29,7 @@ Copyright (C) 2009		John Kelley <wiidev@kelley.ca>
 #include "nand.h"
 #include "boot2.h"
 
-#define NAND_DUMP_FILE "/bootmii/nand.bin"
+#define NAND_DUMP_FILE "/nand.bin" // "/bootmii/nand.bin"
 #define PPC_BOOT_FILE "/bootmii/ppcboot.elf"
 static char path[256];
 FATFS fatfs;
@@ -74,8 +74,8 @@ u32 _main(void *base)
 
 	boot2_init();
 
-	gecko_printf("Initializing IPC...\n");
-	ipc_initialize();
+	//gecko_printf("Initializing IPC...\n");
+	//ipc_initialize();
 
 	gecko_printf("Initializing SDHC...\n");
 	sdhc_init();
@@ -104,9 +104,9 @@ u32 _main(void *base)
 	{	gecko_printf("Dumping to : " NAND_DUMP_FILE "\n");
 		res = dump_NAND_to(NAND_DUMP_FILE, &fatfs);
 	}
-	screen_printf("\nNAND dumping returned %d.\n", res);
 	if(res)
-		systemReset();
+		screen_printf("\nNAND dumping failed.\n", res);
+	systemReset();
 	gecko_printf("Trying to boot:" PPC_BOOT_FILE "\n");
 	res = powerpc_boot_file(PPC_BOOT_FILE);
 	if(res < 0) {
