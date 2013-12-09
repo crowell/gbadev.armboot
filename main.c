@@ -105,7 +105,7 @@ u32 _main(void *base)
 		res = dump_NAND_to(NAND_DUMP_FILE, &fatfs);
 	}
 	if(res)
-		screen_printf("\nNAND dumping failed.\n", res);
+		screen_printf("\nNAND dumping failed.\n");
 	systemReset();
 	gecko_printf("Trying to boot:" PPC_BOOT_FILE "\n");
 	res = powerpc_boot_file(PPC_BOOT_FILE);
