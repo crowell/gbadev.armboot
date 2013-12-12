@@ -412,9 +412,64 @@ void safe_write(FIL *fp, const char *filename, FATFS *fatfs, const void *buff, U
 
 inline u32 pageToOffset(u32 page) {return (PAGE_SIZE + PAGE_SPARE_SIZE) * page;}
 
+void writeKeys(FIL *fd, char* filename, FATFS *fatfs)
+{	u32 i;
+		// 256 human readable
+	const char* humanReadable = "BackupMii v1, ConsoleID: %08x\n";
+	u32 *tempBuffer = (u32*)ipc_data;
+	for(i = 0; i < 0x40; i++)
+		tempBuffer[i] = 0;
+	write32(HW_OTPCMD, 9 | 0x80000000); // gets the console ID from OTP
+	s_printf((char*)ipc_data, humanReadable, read32(HW_OTPDATA));
+	safe_write(fd, filename, fatfs, ipc_data, 0x100);
+	screen_printf(" .");
+	
+		// 128 OTP
+	for(i = 0; i <= 0x1F; i++)
+	{	write32(HW_OTPCMD, i | 0x80000000);
+		tempBuffer[i] = read32(HW_OTPDATA);
+	}safe_write(fd, filename, fatfs, ipc_data, 0x80);
+	
+		// 128 padding
+	for(i = 0; i < 0x20; i++)
+		tempBuffer[i] = 0;
+	safe_write(fd, filename, fatfs, ipc_data, 0x80);
+	screen_printf(" .");
+	
+		// 256 SEEPROM
+	seeprom_read(ipc_data, 0, sizeof(seeprom_t) / 2);
+	safe_write(fd, filename, fatfs, ipc_data, sizeof(seeprom_t));
+	
+		// 256 padding
+	for(i = 0; i < 0x40; i++)
+		tempBuffer[i] = 0;
+	safe_write(fd, filename, fatfs, ipc_data, 0x100);
+}
+
+int write_keys_bin(char* filename, FATFS *fatfs)
+{	int fres = 0;
+	char*pathEnd = filename, *temp = pathEnd;
+	FIL fd;
+	while(temp = strchr(pathEnd, '/'))
+		pathEnd = temp+1;
+	pathEnd[0] = 'k';
+	pathEnd[1] = 'e';
+	pathEnd[2] = 'y';
+	pathEnd[3] = 's';
+	pathEnd[4] = '.';
+	pathEnd[5] = 'b';
+	pathEnd[6] = 'i';
+	pathEnd[7] = 'n';
+	pathEnd[8] = '\0';
+	screen_printf("Writing file %s.", filename);
+	fres = f_open(&fd, filename, FA_CREATE_ALWAYS|FA_WRITE);
+	if(fres) return fres;
+	writeKeys(&fd, filename, fatfs);
+	return f_close(&fd);
+}
+
 int dump_NAND_to(char* filename, FATFS *fatfs)
-{	const char* humanReadable = "BackupMii v1, ConsoleID: %08x\n";
-	u32 page, temp, bw;
+{	u32 page, temp, bw;
 	int ret, fres = 0;
 	FIL fd;
 	fres = f_open(&fd, filename, FA_CREATE_ALWAYS|FA_WRITE);
@@ -454,82 +509,42 @@ int dump_NAND_to(char* filename, FATFS *fatfs)
 			break;
 		}
 	}
-		// 256 human readable
-	u32 *tempBuffer = (u32*)ipc_data;
-	write32(HW_OTPCMD, 9 | 0x80000000); // gets the console ID from OTP
-	temp = read32(HW_OTPDATA);
-	for(page = 0; page < 0x40; page++)
-		tempBuffer[page] = 0;
-	s_printf((char*)ipc_data, humanReadable, temp);
-	safe_write(&fd, filename, fatfs, ipc_data, 0x100);
-	
-		// 128 OTP
-	for(page = 0; page <= 0x1F; page++)
-	{	write32(HW_OTPCMD, page | 0x80000000);
-		tempBuffer[page] = read32(HW_OTPDATA);
-	}safe_write(&fd, filename, fatfs, ipc_data, 0x80);
-	
-		// 128 padding
-	for(page = 0; page < 0x20; page++)
-		tempBuffer[page] = 0;
-	safe_write(&fd, filename, fatfs, ipc_data, 0x80);
-	
-		// 256 SEEPROM
-	seeprom_read(ipc_data, 0, sizeof(seeprom_t) / 2);
-	safe_write(&fd, filename, fatfs, ipc_data, sizeof(seeprom_t));
-	
-		// 256 padding
-	for(page = 0; page < 0x40; page++)
-		tempBuffer[page] = 0;
-	safe_write(&fd, filename, fatfs, ipc_data, 0x100);
-	
-	screen_printf("\nDone.\n");
-	return f_close(&fd);
+	screen_printf("\nWriting footer.");
+	writeKeys(&fd, filename, fatfs);
+	screen_printf(" Done.\n");
+	fres = f_close(&fd);
+	if(write_keys_bin() == FR_OK);
+		screen_printf(" Done.\n");
+	else screen_printf(" Failed.\n");
+	return fres;
 }
 
 int write_NAND_from(char* filename, FATFS *fatfs)
-{	const char* humanReadable = "BackupMii v1, ConsoleID: %08x\n";
-	u32 page, temp;
-	int ret, fres = 0;
+{	u32 page;
+	int fres = 0;
 	FIL fd;
+	u32 *tempBuffer = (u32*)ipc_data;
 	fres = f_open(&fd, filename, FA_READ);
 	if(fres) return fres;
-	
-	
-	
-		// 256 human readable
-	u32 *tempBuffer = (u32*)ipc_data;
-	write32(HW_OTPCMD, 9 | 0x80000000); // gets the console ID from OTP
-	temp = read32(HW_OTPDATA);
-	for(page = 0; page < 0x40; page++)
-		tempBuffer[page] = 0;
-	s_printf((char*)ipc_data, humanReadable, temp);
-	safe_write(&fd, filename, fatfs, ipc_data, 0x100);
-	
+
+	screen_printf("Checking console file against this console's OTP.");
+	fres = f_lseek(&fd, pageToOffset(NAND_MAX_PAGE)+256);	// dump+256 human readable
+	if(fres) return fres;
+
 		// 128 OTP
 	for(page = 0; page <= 0x1F; page++)
 	{	write32(HW_OTPCMD, page | 0x80000000);
 		tempBuffer[page] = read32(HW_OTPDATA);
-	}safe_write(&fd, filename, fatfs, ipc_data, 0x80);
+	}safe_read(&fd, filename, fatfs, ipc_data+128, 0x80);
+	if(memcmp(ipc_data, ipc_data+128, 128))
+	{	screen_printf(" Failed.\n");
+		return -1000; // NOT my NAND dump ... NOT happening!!!
+	}else screen_printf("\n");
 	
-		// 128 padding
-	for(page = 0; page < 0x20; page++)
-		tempBuffer[page] = 0;
-	safe_write(&fd, filename, fatfs, ipc_data, 0x80);
+	fres = f_lseek(&fd, pageToOffset(nand_min_page));
+	if(fres) return fres;
 	
-		// 256 SEEPROM
-	seeprom_read(ipc_data, 0, sizeof(seeprom_t) / 2);
-	safe_write(&fd, filename, fatfs, ipc_data, sizeof(seeprom_t));
-	
-		// 256 padding
-	for(page = 0; page < 0x40; page++)
-		tempBuffer[page] = 0;
-	safe_write(&fd, filename, fatfs, ipc_data, 0x100);
-	
-	
-	
-	
-	screen_printf("\nNAND write process started. Do NOT remove/change the SD card, power down, let the power go out, touch any buttons or do ANYTHING with your Wii until the process has completed. Doing so WILL brick your Wii.\n\n - blocks dumped:\n0    / %d.\r", NAND_MAX_PAGE/64);
+	screen_printf("\nNAND write process started. Do NOT remove/change the SD card, power down,\nlet the power go out, touch any buttons or do ANYTHING with your Wii until the process has completed.\nDoing so  WILL  BRICK  YOUR  WII !!!!\n\n - blocks dumped:\n0    / %d.\r", NAND_MAX_PAGE/64);
 	for (page = nand_min_page; page < NAND_MAX_PAGE; page++)
 	{	/* Read the normal 2048 bytes for the current page */
 		safe_read(&fd, filename, fatfs, ipc_data, PAGE_SIZE);
