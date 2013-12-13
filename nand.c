@@ -513,7 +513,7 @@ int dump_NAND_to(char* filename, FATFS *fatfs)
 	writeKeys(&fd, filename, fatfs);
 	screen_printf(" Done.\n");
 	fres = f_close(&fd);
-	if(write_keys_bin() == FR_OK);
+	if((write_keys_bin(filename, fatfs) == FR_OK))
 		screen_printf(" Done.\n");
 	else screen_printf(" Failed.\n");
 	return fres;
