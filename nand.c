@@ -450,7 +450,7 @@ int write_keys_bin(char* filename, FATFS *fatfs)
 {	int fres = 0;
 	char*pathEnd = filename, *temp = pathEnd;
 	FIL fd;
-	while(temp = strchr(pathEnd, '/'))
+	while( (temp = strchr(pathEnd, '/')) )
 		pathEnd = temp+1;
 	pathEnd[0] = 'k';
 	pathEnd[1] = 'e';
@@ -513,7 +513,7 @@ int dump_NAND_to(char* filename, FATFS *fatfs)
 	writeKeys(&fd, filename, fatfs);
 	screen_printf(" Done.\n");
 	fres = f_close(&fd);
-	if((write_keys_bin(filename, fatfs) == FR_OK))
+	if( (write_keys_bin(filename, fatfs) == FR_OK) )
 		screen_printf(" Done.\n");
 	else screen_printf(" Failed.\n");
 	return fres;
