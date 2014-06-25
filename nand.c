@@ -180,10 +180,13 @@ void nand_get_status(u8 *status_buf) {
 	nand_send_command(NAND_GETSTATUS, 0, NAND_FLAGS_IRQ | NAND_FLAGS_RD, 0x40);
 }
 
-void nand_read_page(u32 pageno, void *data, void *ecc) {
+void nand_read_page(u32 pageno, void *data, void *ecc)
+{nand_read_page2(pageno, data, ecc, 0);}
+
+void nand_read_page2(u32 pageno, void *data, void *ecc, u32 addr0) {
 	irq_flag = 0;
 	last_page_read = pageno;  // needed for error reporting
-	__nand_set_address(0, pageno);
+	__nand_set_address(addr0, pageno);
 	nand_send_command(NAND_READ_PRE, 0x1f, 0, 0);
 
 	if (((s32)data) != -1) dc_invalidaterange(data, PAGE_SIZE);
@@ -205,7 +208,10 @@ void nand_wait(void) {
 }
 
 #ifdef NAND_SUPPORT_WRITE
-void nand_write_page(u32 pageno, void *data, void *ecc) {
+void nand_write_page(u32 pageno, void *data, void *ecc)
+{nand_write_page2(pageno, data, ecc, 0);}
+
+void nand_write_page2(u32 pageno, void *data, void *ecc, u32 addr0) {
 	irq_flag = 0;
 	NAND_debug("nand_write_page(%u, %p, %p)\n", pageno, data, ecc);
 
@@ -217,7 +223,7 @@ void nand_write_page(u32 pageno, void *data, void *ecc) {
 	if (((s32)data) != -1) dc_flushrange(data, PAGE_SIZE);
 	if (((s32)ecc) != -1)  dc_flushrange(ecc, PAGE_SPARE_SIZE);
 	ahb_flush_to(AHB_NAND);
-	__nand_set_address(0, pageno);
+	__nand_set_address(addr0, pageno);
 	__nand_setup_dma(data, ecc);
 	nand_send_command(NAND_WRITE_PRE, 0x1f, NAND_FLAGS_WR, 0x840);
 	__nand_wait();
@@ -226,7 +232,10 @@ void nand_write_page(u32 pageno, void *data, void *ecc) {
 #endif
 
 #ifdef NAND_SUPPORT_ERASE
-void nand_erase_block(u32 pageno) {
+void nand_erase_block(u32 pageno)
+{nand_erase_block2(pageno, 0);}
+
+void nand_erase_block2(u32 pageno, u32 addr0) {
 	irq_flag = 0;
 	NAND_debug("nand_erase_block(%d)\n", pageno);
 
@@ -235,7 +244,7 @@ void nand_erase_block(u32 pageno) {
 		gecko_printf("Error: nand_erase to page %d forbidden\n", pageno);
 		return;
 	}
-	__nand_set_address(0, pageno);
+	__nand_set_address(addr0, pageno);
 	nand_send_command(NAND_ERASE_PRE, 0x1c, 0, 0);
 	__nand_wait();
 	nand_send_command(NAND_ERASE_POST, 0, NAND_FLAGS_IRQ | NAND_FLAGS_WAIT, 0);
@@ -469,20 +478,23 @@ int write_keys_bin(char* filename, FATFS *fatfs)
 }
 
 int dump_NAND_to(char* filename, FATFS *fatfs)
+{return dump_NAND_to2(filename, fatfs, 0, NAND_MAX_PAGE, 0);}
+
+int dump_NAND_to2(char* filename, FATFS *fatfs, u32 startpage, u32 endpage, u32 addr0)
 {	u32 page, temp, bw;
 	int ret, fres = 0;
 	FIL fd;
 	fres = f_open(&fd, filename, FA_CREATE_ALWAYS|FA_WRITE);
 	if(fres) return fres;
-	screen_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - blocks dumped:\n0    / %d.\r", NAND_MAX_PAGE/64);
-	for (page = 0; page < NAND_MAX_PAGE; screen_printf("%d\r", page/64))
+	screen_printf("\nNAND dump process started. Do NOT remove the SD card.\n\n - blocks dumped:\n0    / %d.\r", endpage/64);
+	for (page = startpage; page < endpage; screen_printf("%d\r", page/64))
 	{	for (temp = page; page < temp+64; page++)
-		{	nand_read_page(page, ipc_data, ipc_ecc);
+		{	nand_read_page2(page, ipc_data, ipc_ecc, addr0);
 			nand_wait();
 			
 			ret = nand_correct(page, ipc_data, ipc_ecc);
 			if (ret < 0)
-				screen_printf(" - bad NAND page found: 0x%x (from block %d).\n     / %d.\r", page, page/64, NAND_MAX_PAGE/64);
+				screen_printf(" - bad NAND page found: 0x%x (from block %d).\n     / %d.\r", page, page/64, endpage/64);
 			
 			/* Save the normal 2048 bytes from the current page */
 			fres = f_write(&fd, ipc_data, PAGE_SIZE, &bw);
