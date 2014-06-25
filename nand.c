@@ -480,6 +480,12 @@ int write_keys_bin(char* filename, FATFS *fatfs)
 int dump_NAND_to(char* filename, FATFS *fatfs)
 {return dump_NAND_to2(filename, fatfs, 0, NAND_MAX_PAGE, 0);}
 
+int dump_NAND_to0(char* filename, FATFS *fatfs)
+{return dump_NAND_to2(filename, fatfs, NAND_MAX_PAGE, NAND_MAX_PAGE*2, 0);}
+
+int dump_NAND_to1(char* filename, FATFS *fatfs)
+{return dump_NAND_to2(filename, fatfs, 0, NAND_MAX_PAGE, 1);}
+
 int dump_NAND_to2(char* filename, FATFS *fatfs, u32 startpage, u32 endpage, u32 addr0)
 {	u32 page, temp, bw;
 	int ret, fres = 0;

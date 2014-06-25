@@ -37,6 +37,8 @@ void nand_write_page2(u32 pageno, void *data, void *ecc, u32 addr0);
 void nand_erase_block2(u32 pageno, u32 addr0);
 void nand_wait(void);
 int dump_NAND_to(char* fileName, FATFS *fatfs);
+int dump_NAND_to0(char* fileName, FATFS *fatfs);
+int dump_NAND_to1(char* fileName, FATFS *fatfs);
 int dump_NAND_to2(char* fileName, FATFS *fatfs, u32 startpage, u32 endpage, u32 addr0);
 
 #define NAND_ECC_OK 0
