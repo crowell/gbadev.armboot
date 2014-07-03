@@ -521,7 +521,7 @@ int dump_NAND_to2(char* filename, FATFS *fatfs, u32 startpage, u32 endpage, u32 
 				continue;
 			if(f_open(&fd, filename, FA_OPEN_ALWAYS|FA_WRITE) != FR_OK)
 				continue;
-			if(f_lseek(&fd, pageToOffset(temp)) != FR_OK)
+			if(f_lseek(&fd, pageToOffset(temp-startpage)) != FR_OK)
 				continue;
 			page = temp;
 			break;
